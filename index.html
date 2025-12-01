@@ -552,8 +552,24 @@
     display:flex;
     flex-direction:column;
     align-items:center;
-    justify-content:space-between;
-    margin-bottom:16px;
+    justify-content:flex-end;
+    min-height:calc(100vh - 140px);
+    padding-bottom:12px;
+  }
+
+  #home-account-pill {
+    background:var(--coyote-red);
+    color:#ffffff;
+    padding:8px 16px;
+    border-radius:999px;
+    font-weight:700;
+    font-size:14px;
+    margin-bottom:8px;
+    max-width:80%;
+    text-align:center;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
   }
 
   .home-box {
@@ -808,6 +824,7 @@
 </div>
 
 <div id="home-view">
+  <div id="home-account-pill"></div>
   <div class="home-box">
     <button class="home-btn" id="home-btn-race">Race</button>
     <button class="home-btn" id="home-btn-performance">Performance</button>
@@ -964,7 +981,7 @@
 <script>
 "use strict";
 
-const APP_VERSION = "2.24";
+const APP_VERSION = "2.25";
 const API_URL = "https://script.google.com/macros/s/AKfycbypSAJ04y8QGmNy4Yj-OnZytC9j_rFw7aBfh6hJ7iuxy_LJVAvok_dKPxy44ZWpCNq0/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
@@ -997,6 +1014,7 @@ const homeBtnRace = document.getElementById("home-btn-race");
 const homeBtnPerformance = document.getElementById("home-btn-performance");
 const homeBtnTest = document.getElementById("home-btn-test");
 const homeBtnBikers = document.getElementById("home-btn-bikers");
+const homeAccountPill = document.getElementById("home-account-pill");
 
 const mainButtons = document.getElementById("main-buttons");
 const btnDb = document.getElementById("btn-db");
@@ -1069,11 +1087,13 @@ function setCurrentUser(userId, username) {
   localStorage.setItem(USER_ID_STORAGE_KEY, userId);
   localStorage.setItem(USERNAME_STORAGE_KEY, username || "");
   updateAccountBadge();
+  updateHomeAccountPill();
 }
 function clearCurrentUser() {
   localStorage.removeItem(USER_ID_STORAGE_KEY);
   localStorage.removeItem(USERNAME_STORAGE_KEY);
   updateAccountBadge();
+  updateHomeAccountPill();
 }
 function updateAccountBadge() {
   if (!accountBadge) return;
@@ -1083,9 +1103,27 @@ function updateAccountBadge() {
   else accountBadge.textContent = name ? ("@" + name) : uid;
 }
 
+
+function updateHomeAccountPill() {
+  if (!homeAccountPill) return;
+  const uid = getCurrentUserId();
+  const name = getCurrentUsername();
+  if (!uid) {
+    homeAccountPill.textContent = "Nessun account";
+    homeAccountPill.style.opacity = "0.6";
+  } else {
+    homeAccountPill.textContent = name ? ("@" + name) : uid;
+    homeAccountPill.style.opacity = "1";
+  }
+}
+
 if (versionLabel) {
   versionLabel.textContent = "Versione " + APP_VERSION;
 }
+
+updateAccountBadge();
+updateHomeAccountPill();
+
 
 /* AUTH UI */
 function showAuthOverlay(message) {
