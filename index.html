@@ -97,8 +97,8 @@
     border:1px solid #4B5563;
     background:#111827;
     color:#E5E7EB;
-    font-size:13px;
-    font-weight:600;
+    font-size:20px;
+    font-weight:700;
     cursor:pointer;
     transition:background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
   }
@@ -122,7 +122,7 @@
     border:1px solid #4B5563;
     background:#020617;
     color:#F9FAFB;
-    font-size:14px;
+    font-size:20px;
   }
   .auth-field input::placeholder { color:#6B7280; }
   .auth-button {
@@ -134,7 +134,7 @@
     background:var(--coyote-red);
     color:#fff;
     font-weight:700;
-    font-size:15px;
+    font-size:20px;
     cursor:pointer;
     transition:transform 0.08s ease, box-shadow 0.12s ease;
     box-shadow:0 8px 20px rgba(204,0,0,0.6);
@@ -201,7 +201,7 @@
   }
 
   .race-pill-value {
-    font-size:14px;
+    font-size:20px;
     font-weight:700;
     margin-top:2px;
   }
@@ -227,7 +227,7 @@
     display:flex;
     justify-content:space-between;
     align-items:center;
-    font-size:13px;
+    font-size:20px;
   }
 
   li:nth-child(1){ background:rgba(253,224,0,0.18); border:1px solid rgba(253,224,0,0.7);}
@@ -257,7 +257,7 @@
   }
 
   .result-name {
-    font-weight:600;
+    font-weight:700;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
@@ -345,7 +345,7 @@
   }
 
   .player-title {
-    font-weight:600;
+    font-weight:700;
     margin-bottom:8px;
     display:flex;
     justify-content:space-between;
@@ -358,7 +358,7 @@
     color:#dc2626;
     font-weight:bold;
     cursor:pointer;
-    font-size:14px;
+    font-size:20px;
   }
 
   #db-container input,
@@ -371,7 +371,7 @@
     padding:8px;
     border-radius:6px;
     border:1px solid #ccc;
-    font-size:14px;
+    font-size:20px;
     margin-bottom:4px;
   }
   /* STILE BARRA DATA NELLA PAGINA GARA */
@@ -445,7 +445,7 @@
     border-color:#16a34a;
   }
 
-  .participant-name { font-weight:600; }
+  .participant-name { font-weight:700; }
 
   .participant-meta {
     font-size:11px;
@@ -465,8 +465,8 @@
     padding:12px;
     border-radius:999px;
     border:none;
-    font-weight:600;
-    font-size:14px;
+    font-weight:700;
+    font-size:20px;
     cursor:pointer;
     transition:transform 0.08s ease, box-shadow 0.12s ease, opacity 0.12s ease;
   }
@@ -489,8 +489,8 @@
     padding:16px;
     border-radius:999px;
     border:none;
-    font-size:14px;
-    font-weight:600;
+    font-size:20px;
+    font-weight:700;
     cursor:pointer;
   }
   .btn-db-add   { background:#e5e7eb; color:#111; }
@@ -552,9 +552,9 @@
     display:flex;
     flex-direction:column;
     align-items:center;
-    justify-content:flex-end;
-    min-height:calc(100vh - 140px);
-    padding-bottom:12px;
+    justify-content:flex-start;
+    margin-top:8px;
+    margin-bottom:16px;
   }
 
   #home-account-pill {
@@ -563,7 +563,7 @@
     padding:8px 16px;
     border-radius:999px;
     font-weight:700;
-    font-size:14px;
+    font-size:20px;
     margin-bottom:8px;
     max-width:80%;
     text-align:center;
@@ -653,8 +653,8 @@
     border-radius:999px;
     border:1px solid var(--coyote-yellow);
     background:#fef9c3;
-    font-size:13px;
-    font-weight:600;
+    font-size:20px;
+    font-weight:700;
     cursor:pointer;
     color:#111827;
     transition:background 0.15s ease, color 0.15s ease, transform 0.08s ease;
@@ -684,7 +684,7 @@
     border-radius:999px;
     border:none;
     font-weight:700;
-    font-size:18px;
+    font-size:20px;
     cursor:pointer;
     transition:transform 0.08s ease, box-shadow 0.12s ease;
   }
@@ -906,17 +906,17 @@
       <div style="margin-top:20px; margin-bottom:10px; display:flex; justify-content:center; gap:10px; flex-wrap:nowrap;">
         <button id="performance-overall-btn"
           style="background:#FDE000; color:#111; padding:16px 28px; border:none; border-radius:999px;
-                 font-weight:800; cursor:pointer; font-size:18px; min-width:90px;">
+                 font-weight:800; cursor:pointer; font-size:20px; min-width:90px;">
           Media
         </button>
         <button id="performance-race-btn"
           style="background:#16A34A; color:#fff; padding:16px 28px; border:none; border-radius:999px;
-                 font-weight:800; cursor:pointer; font-size:18px; min-width:90px;">
+                 font-weight:800; cursor:pointer; font-size:20px; min-width:90px;">
           Gare
         </button>
         <button id="reset-performance-btn"
           style="background:#CC0000; color:#fff; padding:16px 28px; border:none; border-radius:999px;
-                 font-weight:800; cursor:pointer; font-size:18px; min-width:90px;">
+                 font-weight:800; cursor:pointer; font-size:20px; min-width:90px;">
           Reset
         </button>
       </div>
@@ -981,7 +981,7 @@
 <script>
 "use strict";
 
-const APP_VERSION = "2.25";
+const APP_VERSION = "2.26";
 const API_URL = "https://script.google.com/macros/s/AKfycbypSAJ04y8QGmNy4Yj-OnZytC9j_rFw7aBfh6hJ7iuxy_LJVAvok_dKPxy44ZWpCNq0/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
