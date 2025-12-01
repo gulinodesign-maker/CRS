@@ -771,8 +771,7 @@
       <div class="menu-line"></div>
       <div class="menu-line"></div>
     </div>
-    <div id="account-badge" title="Tocca per cambiare account">Nessun account</div>
-  </div>
+    </div>
 </div>
 
 <div id="home-view">
@@ -781,9 +780,9 @@
     <button class="home-btn" id="home-btn-performance">Performance</button>
     <button class="home-btn" id="home-btn-test">Test Algoritmo</button>
     <button class="home-btn" id="home-btn-bikers">Bikers</button>
-  </div>
+      <button class="home-btn" id="home-btn-account">Account</button>
+</div>
   <div id="home-footer">
-    <div id="account-badge" title="Tocca per cambiare account">Nessun account</div>
     <div id="version-label"></div>
   </div>
 </div>
@@ -932,7 +931,7 @@
 <script>
 "use strict";
 
-const APP_VERSION = "2.15";
+const APP_VERSION = "2.17";
 const API_URL = "https://script.google.com/macros/s/AKfycbypSAJ04y8QGmNy4Yj-OnZytC9j_rFw7aBfh6hJ7iuxy_LJVAvok_dKPxy44ZWpCNq0/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
@@ -1616,6 +1615,13 @@ if (homeBtnTest) {
     showView("test");
   };
 }
+
+if (document.getElementById("home-btn-account")) {
+  document.getElementById("home-btn-account").onclick = () => {
+    showAuthOverlay();
+  };
+}
+
 if (homeBtnBikers) {
   homeBtnBikers.onclick = async () => {
     await renderDBView();
