@@ -1,0 +1,2460 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>CRS Score</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- PWA / Manifest -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#000000">
+
+  <!-- iOS specifico (iPhone / iPad) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <link rel="apple-touch-icon" href="crs-icon.png">
+  <link rel="icon" href="crs-icon.png" type="image/png">
+
+  <style>
+  :root {
+    --coyote-red:#CC0000;
+    --coyote-yellow:#FDE000;
+    --bg-dark:#000000;
+    --bg-card:#ffffff;
+    --text-main:#111827;
+  }
+
+  * { box-sizing:border-box; }
+
+  body {
+    font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg-dark);
+    margin:0;
+    padding:20px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* LOADING SCREEN */
+  #loading-screen {
+    position:fixed;
+    inset:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#000;
+    color:#fff;
+    font-size:20px;
+    font-weight:700;
+    z-index:9999;
+    text-align:center;
+  }
+  #loading-dots {
+    display:inline-block;
+    width:24px;
+    text-align:left;
+  }
+
+  /* AUTH OVERLAY */
+  #auth-overlay {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.9);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:10000;
+  }
+  .auth-card {
+    width:100%;
+    max-width:380px;
+    background:#111827;
+    border-radius:20px;
+    padding:24px 20px 20px;
+    box-shadow:0 18px 45px rgba(0,0,0,0.7);
+    color:#F9FAFB;
+  }
+  .auth-title {
+    font-size:22px;
+    font-weight:800;
+    margin-bottom:4px;
+    text-align:center;
+  }
+  .auth-subtitle {
+    font-size:12px;
+    color:#9CA3AF;
+    text-align:center;
+    margin-bottom:16px;
+  }
+  .auth-toggle-row {
+    display:flex;
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .auth-toggle-btn {
+    flex:1;
+    padding:10px;
+    border-radius:999px;
+    border:1px solid #4B5563;
+    background:#111827;
+    color:#E5E7EB;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+  }
+  .auth-toggle-btn.active {
+    background:var(--coyote-yellow);
+    color:#111827;
+    border-color:var(--coyote-yellow);
+  }
+  .auth-toggle-btn:active { transform:scale(0.97); }
+  .auth-field { margin-bottom:10px; }
+  .auth-field label {
+    display:block;
+    font-size:12px;
+    margin-bottom:4px;
+    color:#E5E7EB;
+  }
+  .auth-field input {
+    width:100%;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid #4B5563;
+    background:#020617;
+    color:#F9FAFB;
+    font-size:14px;
+  }
+  .auth-field input::placeholder { color:#6B7280; }
+  .auth-button {
+    width:100%;
+    margin-top:14px;
+    padding:12px;
+    border-radius:999px;
+    border:none;
+    background:var(--coyote-red);
+    color:#fff;
+    font-weight:700;
+    font-size:15px;
+    cursor:pointer;
+    transition:transform 0.08s ease, box-shadow 0.12s ease;
+    box-shadow:0 8px 20px rgba(204,0,0,0.6);
+  }
+  .auth-button:active { transform:scale(0.97); box-shadow:none; }
+  .auth-error {
+    margin-top:8px;
+    font-size:12px;
+    color:#F97316;
+    min-height:16px;
+  }
+
+  /* MAIN APP CONTAINER */
+  .container {
+    max-width:480px;
+    margin:0 auto;
+    background:var(--bg-card);
+    padding:16px;
+    border-radius:14px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.35);
+    opacity:0;
+    transition:opacity 0.25s ease;
+  }
+
+  /* CLASSIFICA – GRAFICA “RACING” */
+  .ranking {
+    background: radial-gradient(circle at top, #111 0, #111827 45%, #000 100%);
+    padding:12px;
+    border-radius:16px;
+    margin-bottom:18px;
+    border:1px solid var(--coyote-yellow);
+    box-shadow:0 0 18px rgba(253,224,0,0.6);
+    color:#F9FAFB;
+  }
+
+  .ranking-header { margin-bottom:8px; }
+
+  .race-pills-row {
+    display:flex;
+    gap:8px;
+    justify-content:space-between;
+    margin-bottom:4px;
+  }
+
+  .race-pill {
+    flex:1;
+    max-width:160px;
+    background:rgba(15,23,42,0.95);
+    border-radius:999px;
+    padding:6px 10px;
+    border:1px solid rgba(253,224,0,0.5);
+    box-shadow:0 0 10px rgba(253,224,0,0.35);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:space-between;
+  }
+
+  .race-pill-label {
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    opacity:0.85;
+  }
+
+  .race-pill-value {
+    font-size:14px;
+    font-weight:700;
+    margin-top:2px;
+  }
+
+  .race-top-row {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+  .race-date {
+    width:100%;
+    text-align:center;
+    font-weight:700;
+    white-space:normal;
+  }
+
+  ol { margin:0; padding-left:0; list-style:none; }
+
+  li {
+    margin:4px 0;
+    padding:6px 8px;
+    border-radius:8px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:13px;
+  }
+
+  li:nth-child(1){ background:rgba(253,224,0,0.18); border:1px solid rgba(253,224,0,0.7);}
+  li:nth-child(2){ background:rgba(248,113,113,0.16); border:1px solid rgba(248,113,113,0.5);}
+  li:nth-child(3){ background:rgba(148,163,184,0.18); border:1px solid rgba(148,163,184,0.5);}
+  li:nth-child(n+4){ background:rgba(15,23,42,0.6); border:1px solid rgba(30,64,175,0.4); }
+
+  .result-left {
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    flex:1;
+    min-width:0;
+  }
+
+  .result-topline {
+    display:flex;
+    align-items:baseline;
+    gap:6px;
+    width:100%;
+  }
+
+  .position-number {
+    font-size:22px;
+    font-weight:800;
+    line-height:1;
+  }
+
+  .result-name {
+    font-weight:600;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  .battery-row {
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .result-right {
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:4px;
+    margin-left:8px;
+  }
+
+  .right-topline {
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+
+  .medal { font-size:26px; line-height:1; }
+
+  .result-score {
+    font-weight:800;
+    font-size:20px;
+    white-space:nowrap;
+    line-height:24px;
+  }
+
+  /* BATTERIA */
+  .battery {
+    width:130px;
+    height:24px;
+    border-radius:5px;
+    border:2px solid #e5e7eb;
+    position:relative;
+    padding:3px;
+    display:flex;
+    align-items:center;
+    background:rgba(15,23,42,0.9);
+    overflow:hidden;
+  }
+  .battery::after {
+    content:"";
+    position:absolute;
+    right:-7px;
+    top:50%;
+    transform:translateY(-50%);
+    width:6px;
+    height:12px;
+    border-radius:2px;
+    background:#e5e7eb;
+  }
+  .battery-level {
+    height:100%;
+    border-radius:3px;
+    width:0%;
+    background-color:#22c55e;
+    transition:width 0.9s ease-out;
+  }
+  .battery-percent-label {
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    font-size:11px;
+    font-weight:700;
+    color:#f9fafb;
+    text-shadow:0 0 4px rgba(0,0,0,0.7);
+    pointer-events:none;
+  }
+
+  .player-card {
+    background:#f9fafb;
+    padding:10px;
+    border-radius:12px;
+    margin-bottom:10px;
+    border:1px solid #ddd;
+  }
+
+  .player-title {
+    font-weight:600;
+    margin-bottom:8px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+
+  .delete-biker {
+    background:none;
+    border:none;
+    color:#dc2626;
+    font-weight:bold;
+    cursor:pointer;
+    font-size:14px;
+  }
+
+  #db-container input,
+  #players-container input,
+  #race-info-container input {
+    display:block;
+    width:100%;
+    max-width:100%;
+    box-sizing:border-box;
+    padding:8px;
+    border-radius:6px;
+    border:1px solid #ccc;
+    font-size:14px;
+    margin-bottom:4px;
+  }
+  /* STILE BARRA DATA NELLA PAGINA GARA */
+  #race-date-input {
+  -webkit-appearance: none;
+  appearance: none;
+
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+
+  background: #e5e7eb;
+  border-radius: 18px;
+  border: 2px solid #ffffff;
+
+  text-align: center;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: normal;
+
+  padding: 14px 0;
+  min-height: 50px;
+}
+
+  #race-date-input::-webkit-datetime-edit {
+    text-align:center;
+    padding:0;
+  }
+  #race-date-input::-webkit-datetime-edit-fields-wrapper {
+    text-align:center;
+  }
+
+
+  /* SELEZIONE BIKERS – STILE ORIGINALE */
+  .participant-row {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:8px 10px;
+    border-radius:10px;
+    background:#f3f4f6;
+    margin-bottom:6px;
+    border:1px solid #d1d5db;
+    cursor:pointer;
+    transition:background 0.15s ease, transform 0.08s ease;
+  }
+
+  .participant-row:active { transform:scale(0.98); }
+
+  .participant-row.selected {
+    background:#d1fae5;
+    border-color:#16a34a;
+  }
+
+  .participant-main {
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .participant-bullet {
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    border:2px solid #9ca3af;
+    background:#fff;
+  }
+
+  .participant-row.selected .participant-bullet {
+    background:#22c55e;
+    border-color:#16a34a;
+  }
+
+  .participant-name { font-weight:600; }
+
+  .participant-meta {
+    font-size:11px;
+    color:#6b7280;
+  }
+
+  /* BOTTONI */
+  .buttons {
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:12px;
+  }
+  .btn {
+    display:block;
+    width:100%;
+    padding:12px;
+    border-radius:999px;
+    border:none;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    transition:transform 0.08s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+  }
+  .btn:active { transform:scale(0.97); box-shadow:none; }
+
+  #btn-db     { background:var(--coyote-yellow); color:#111; }
+  #btn-select { background:var(--coyote-red); color:#fff; }
+  #btn-gara   { background:var(--coyote-red); color:#fff; }
+  #calc-btn   { background:var(--coyote-red); color:#fff; }
+  #btn-reset  { background:#6b7280; color:#fff; }
+  #save-race-button { background:var(--coyote-red); color:#fff; }
+
+  .db-buttons-inline {
+    display:flex;
+    gap:8px;
+    margin-top:4px;
+  }
+  .btn-small {
+    flex:1;
+    padding:16px;
+    border-radius:999px;
+    border:none;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  .btn-db-add   { background:#e5e7eb; color:#111; }
+  .btn-db-save  { background:var(--coyote-yellow); color:#111; }
+
+  /* BANNER IN ALTO */
+  #top-banner-wrap {
+    max-width:900px;
+    margin:0 auto 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+  #top-banner {
+    width:auto;
+    max-width:70%;
+    height:auto;
+    display:block;
+  }
+
+  /* MENU ICON & ACCOUNT BADGE */
+  #header-right {
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:6px;
+  }
+  #menu-icon {
+    width:32px;
+    height:24px;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .menu-line {
+    width:100%;
+    height:4px;
+    background:#CC0000;
+    border-radius:3px;
+  }
+  #account-badge {
+    font-size:10px;
+    padding:4px 8px;
+    border-radius:999px;
+    background:#111827;
+    color:#F9FAFB;
+    border:1px solid #4B5563;
+    cursor:pointer;
+    max-width:120px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+
+  /* HOME VIEW */
+  #home-view {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:16px;
+  }
+
+  .home-box {
+    margin-top:10px;
+    background:var(--coyote-yellow);
+    border-radius:30px;
+    padding:28px 22px;
+    width:100%;
+    max-width:420px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  .home-btn {
+    background:var(--coyote-red);
+    color:#ffffff;
+    padding:14px 18px;
+    font-size:20px;
+    text-align:center;
+    border-radius:22px;
+    border:2px solid var(--coyote-red);
+    font-weight:700;
+    cursor:pointer;
+    transition:transform 0.08s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+  }
+  .home-btn:active { transform:scale(0.97); }
+
+  /* Hide app container in home view */
+  body.home-mode .container { display:none; }
+
+  /* TEST VIEW */
+  #test-inputs {
+    margin-top:12px;
+    background:#f9fafb;
+    border-radius:12px;
+    padding:10px;
+    border:1px solid #e5e7eb;
+  }
+  .test-tabs {
+    display:flex;
+    gap:6px;
+    margin-bottom:8px;
+  }
+  .test-tab {
+    flex:1;
+    padding:10px;
+    border-radius:999px;
+    border:1px solid var(--coyote-yellow);
+    background:#fef9c3;
+    font-size:13px;
+    font-weight:600;
+    cursor:pointer;
+    color:#111827;
+    transition:background 0.15s ease, color 0.15s ease, transform 0.08s ease;
+  }
+  .test-tab:active { transform:scale(0.97); }
+  .test-tab.active {
+    background:var(--coyote-yellow);
+    color:#111827;
+    border-color:var(--coyote-yellow);
+  }
+  .test-tab-contents { margin-top:4px; }
+  .test-tab-content { display:none; }
+  .test-tab-content.active { display:block; }
+  #test-inputs input {
+    width:100%;
+    padding:20px;
+    border-radius:8px;
+    border:1px solid #d1d5db;
+    font-size:16px;
+    font-weight:700;
+    box-sizing:border-box;
+  }
+  #test-calc-btn, #test-reset-btn {
+    margin-top:10px;
+    width:100%;
+    padding:24px;
+    border-radius:999px;
+    border:none;
+    font-weight:700;
+    font-size:18px;
+    cursor:pointer;
+    transition:transform 0.08s ease, box-shadow 0.12s ease;
+  }
+  #test-calc-btn { background:#16a34a; color:#fff; }
+  #test-reset-btn { background:#dc2626; color:#fff; }
+  #test-calc-btn:active, #test-reset-btn:active { transform:scale(0.97); }
+
+  #test-view .race-pills-row { justify-content:center; }
+  #test-view .race-pill { max-width:none; min-width:200px; text-align:center; }
+  #test-view .race-pill-value { font-size:24px; font-weight:800; }
+
+  /* CALENDARIO PERFORMANCE COME POPUP GRANDE */
+  #race-calendar {
+    position:fixed;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    z-index:9998;
+    width:calc(100% - 40px);
+    max-width:480px;
+  }
+
+  /* HEADER GARA SPECIFICA (CHIARO) */
+  #performance-race-header {
+    background:#fefce8;
+    color:#111827;
+    box-shadow:0 0 12px rgba(253,224,0,0.5);
+  }
+  #performance-race-header .race-pill {
+    background:#f3f4f6;
+    color:#111827;
+    border:1px solid #e5e7eb;
+    box-shadow:none;
+  }
+  #performance-race-header .race-pill-label,
+  #performance-race-header .race-pill-value { color:#111827; }
+  #performance-race-header .race-top-row {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+  
+/* Fix stronger centering for date input */
+#race-date-input {
+  text-align-last:center;
+}
+
+#race-date-input::-webkit-date-and-time-value {
+  text-align: center;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* CORREZIONE BARRA DATA — COMPLETAMENTE CENTRATA + BORDO BIANCO */
+
+#race-date-display {
+  color: #CC0000 !important;
+  font-weight: 800;
+  font-size: 16px;
+  text-align: center !important;
+  display: block;
+}
+
+
+
+#perf-race-date-display {
+  color: #CC0000 !important;
+  font-weight: 800;
+  font-size: 16px;
+  text-align: center !important;
+  display: block;
+  margin-top: 10px;
+}
+
+
+</style>
+</head>
+
+<body>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  Caricamento<span id="loading-dots"></span>
+</div>
+
+<!-- AUTH OVERLAY -->
+<div id="auth-overlay">
+  <div class="auth-card">
+    <div class="auth-title">CRS Score</div>
+    <div class="auth-subtitle">Accedi o crea un account per salvare bikers e gare.</div>
+
+    <div class="auth-toggle-row">
+      <button id="auth-toggle-login" class="auth-toggle-btn active" type="button">Login</button>
+      <button id="auth-toggle-register" class="auth-toggle-btn" type="button">Crea account</button>
+    </div>
+
+    <div class="auth-field">
+      <label for="auth-username">Username</label>
+      <input id="auth-username" type="text" autocomplete="username" placeholder="Es. marco_79">
+    </div>
+    <div class="auth-field">
+      <label for="auth-password">Password</label>
+      <input id="auth-password" type="password" autocomplete="current-password" placeholder="Inserisci password">
+    </div>
+
+    <button id="auth-submit" class="auth-button" type="button">Entra</button>
+    <div id="auth-error" class="auth-error"></div>
+  </div>
+</div>
+
+<div id="top-banner-wrap">
+  <img id="top-banner" src="BANNER.jpg" alt="CRS Factory Racing">
+  <div id="header-right">
+    <div id="menu-icon">
+      <div class="menu-line"></div>
+      <div class="menu-line"></div>
+      <div class="menu-line"></div>
+    </div>
+    <div id="account-badge" title="Tocca per cambiare account">Nessun account</div>
+  </div>
+</div>
+
+<div id="home-view">
+  <div class="home-box">
+    <button class="home-btn" id="home-btn-race">Race</button>
+    <button class="home-btn" id="home-btn-performance">Performance</button>
+    <button class="home-btn" id="home-btn-test">Test Algoritmo</button>
+    <button class="home-btn" id="home-btn-bikers">Bikers</button>
+    <button class="home-btn" id="home-btn-version">Versione</button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="ranking" id="ranking-box">
+    <div class="ranking-header">
+      <div class="race-pills-row">
+        <div class="race-pill">
+          <div class="race-pill-label">Km</div>
+          <div class="race-pill-value" id="race-distance-display"></div>
+        </div>
+        <div class="race-pill">
+          <div class="race-pill-label">Dislivello</div>
+          <div class="race-pill-value" id="race-elevation-display"></div>
+        </div>
+      </div>
+      <div class="race-top-row">
+        <span id="race-date-display" class="race-date"></span>
+      </div>
+    </div>
+    <ol id="ranking-list"></ol>
+  </div>
+
+  <div id="db-container"></div>
+  <div id="select-container"></div>
+  <div id="players-container"></div>
+
+  <!-- Input data semplice -->
+  <div id="race-info-container" style="display:none;flex-direction:column;gap:6px;">
+    <input id="race-date-input" type="date" />
+    <input id="race-circuit-input" type="text" placeholder="Luogo / circuito">
+    <input id="race-distance-input" type="number" step="0.1" placeholder="Km percorsi">
+    <input id="race-elevation-input" type="number" step="1" placeholder="Dislivello (m)">
+  </div>
+
+  <div id="performance-container" style="display:none; margin-top:16px;">
+    <div id="performance-graph" style="display:flex;align-items:flex-end;gap:10px;justify-content:center;margin-top:20px;"></div>
+
+    <h2 id="performance-title" style="font-size:16px; margin:12px 0 4px; color:var(--coyote-red); text-align:center;">
+      Performance complessive
+    </h2>
+    <p id="performance-subtitle" style="font-size:12px; color:#374151; text-align:center; margin:0 0 8px;">
+      Media pesata delle performance su tutte le gare per ogni biker.
+    </p>
+
+    <!-- HEADER GARA SELEZIONATA -->
+    <div id="performance-race-header" class="ranking" style="margin-top:8px; display:none;">
+      <div class="ranking-header">
+        <div class="race-pills-row">
+          <div class="race-pill">
+            <div class="race-pill-label">Km</div>
+            <div class="race-pill-value" id="perf-race-distance-display"></div>
+          </div>
+          <div class="race-pill">
+            <div class="race-pill-label">Dislivello</div>
+            <div class="race-pill-value" id="perf-race-elevation-display"></div>
+          </div>
+        </div>
+        <div class="race-top-row">
+          <span id="perf-race-date-display" class="race-date"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="performance-chart" style="background:#f3f4f6; border-radius:12px; padding:10px; border:1px solid #d1d5db; margin-top:8px;">
+      <div id="performance-bars" style="display:flex; align-items:flex-end; gap:8px; height:220px; padding:8px 4px 0;"></div>
+      <div id="performance-empty" style="font-size:12px; color:#6b7280; text-align:center; margin-top:8px;">
+        Nessuna gara registrata.
+      </div>
+      <div style="margin-top:20px; margin-bottom:10px; display:flex; justify-content:center; gap:10px; flex-wrap:nowrap;">
+        <button id="performance-overall-btn"
+          style="background:#FDE000; color:#111; padding:16px 28px; border:none; border-radius:999px;
+                 font-weight:800; cursor:pointer; font-size:18px; min-width:90px;">
+          Media
+        </button>
+        <button id="performance-race-btn"
+          style="background:#16A34A; color:#fff; padding:16px 28px; border:none; border-radius:999px;
+                 font-weight:800; cursor:pointer; font-size:18px; min-width:90px;">
+          Gare
+        </button>
+        <button id="reset-performance-btn"
+          style="background:#CC0000; color:#fff; padding:16px 28px; border:none; border-radius:999px;
+                 font-weight:800; cursor:pointer; font-size:18px; min-width:90px;">
+          Reset
+        </button>
+      </div>
+
+      <!-- POPUP CALENDARIO GARE -->
+      <div id="race-calendar"
+           style="display:none; margin:10px auto 0; padding:10px;
+                  border-radius:16px; background:#fff7ed; border:1px solid #fed7aa;
+                  box-shadow:0 10px 30px rgba(0,0,0,0.25);">
+      </div>
+
+    </div>
+  </div>
+
+  <div id="test-view" style="display:none; margin-top:16px;">
+    <div class="ranking" id="test-ranking-box">
+      <div class="ranking-header">
+        <div class="race-pills-row">
+          <div class="race-pill">
+            <div class="race-pill-value" id="test-scenario-display">Wh/kg</div>
+          </div>
+        </div>
+      </div>
+      <ol id="test-ranking-list"></ol>
+    </div>
+
+    <div id="test-inputs">
+      <div class="test-tabs">
+        <button type="button" class="test-tab active" data-tab="wh">Wh batteria</button>
+        <button type="button" class="test-tab" data-tab="kg">Peso biker (kg)</button>
+        <button type="button" class="test-tab" data-tab="percent">Carica residua (%)</button>
+      </div>
+      <div class="test-tab-contents">
+        <div class="test-tab-content active" data-tab="wh">
+          <input id="test-battery-input" type="number" step="1"
+                 placeholder="Inserisci capacità batteria in Wh (es. 500)">
+        </div>
+        <div class="test-tab-content" data-tab="kg">
+          <input id="test-weight-input" type="number" step="0.5"
+                 placeholder="Inserisci peso biker in kg (es. 75)">
+        </div>
+        <div class="test-tab-content" data-tab="percent">
+          <input id="test-percent-input" type="number" step="1" min="0" max="100"
+                 placeholder="Inserisci carica residua in % (0-100)">
+        </div>
+      </div>
+      <button id="test-calc-btn" type="button">Test</button>
+      <button id="test-reset-btn" type="button">Reset</button>
+    </div>
+  </div>
+</div>
+
+<div class="buttons" id="main-buttons">
+  <button class="btn" id="btn-db">Gestisci database</button>
+  <button class="btn" id="btn-select">Bikers partecipanti</button>
+  <button class="btn" id="btn-gara">Inserisci percentuali</button>
+  <button class="btn" id="calc-btn">Calcola classifica</button>
+  <button class="btn" id="btn-reset">Reset</button>
+  <button class="btn" id="save-race-button">Invia dati gara al database</button>
+</div>
+
+<script>
+"use strict";
+
+const APP_VERSION = "2.14";
+const API_URL = "https://script.google.com/macros/s/AKfycbypSAJ04y8QGmNy4Yj-OnZytC9j_rFw7aBfh6hJ7iuxy_LJVAvok_dKPxy44ZWpCNq0/exec";
+
+const USER_ID_STORAGE_KEY = "crs_userId_v2";
+const USERNAME_STORAGE_KEY = "crs_username_v2";
+
+window.__bikersCache = [];
+let MAX_BIKERS = 20;
+
+/* Loading dots */
+let loadingDotCount = 0;
+const loadingInterval = setInterval(() => {
+  const dots = document.getElementById("loading-dots");
+  if (dots) {
+    loadingDotCount = (loadingDotCount + 1) % 4;
+    dots.textContent = ".".repeat(loadingDotCount);
+  }
+}, 400);
+
+/* REFERENCES */
+const dbContainer = document.getElementById("db-container");
+const selectContainer = document.getElementById("select-container");
+const playersContainer = document.getElementById("players-container");
+const raceInfoContainer = document.getElementById("race-info-container");
+const rankingList = document.getElementById("ranking-list");
+const rankingBox = document.getElementById("ranking-box");
+const saveRaceButton = document.getElementById("save-race-button");
+
+const homeView = document.getElementById("home-view");
+const homeBtnRace = document.getElementById("home-btn-race");
+const homeBtnPerformance = document.getElementById("home-btn-performance");
+const homeBtnTest = document.getElementById("home-btn-test");
+const homeBtnBikers = document.getElementById("home-btn-bikers");
+const homeBtnVersion = document.getElementById("home-btn-version");
+
+const mainButtons = document.getElementById("main-buttons");
+const btnDb = document.getElementById("btn-db");
+const btnSelect = document.getElementById("btn-select");
+const btnGara = document.getElementById("btn-gara");
+const calcBtn = document.getElementById("calc-btn");
+const btnReset = document.getElementById("btn-reset");
+
+const raceDateInput = document.getElementById("race-date-input");
+if (raceDateInput) raceDateInput.addEventListener("change", updateRaceDateDisplay);
+const raceCircuitInput = document.getElementById("race-circuit-input");
+const raceDistanceInput = document.getElementById("race-distance-input");
+const raceElevationInput = document.getElementById("race-elevation-input");
+
+const raceDateDisplay = document.getElementById("race-date-display");
+const raceDistanceDisplay = document.getElementById("race-distance-display");
+const raceElevationDisplay = document.getElementById("race-elevation-display");
+
+const performanceContainer = document.getElementById("performance-container");
+const performanceBars = document.getElementById("performance-bars");
+const performanceEmpty = document.getElementById("performance-empty");
+const performanceTitle = document.getElementById("performance-title");
+const performanceSubtitle = document.getElementById("performance-subtitle");
+const performanceOverallBtn = document.getElementById("performance-overall-btn");
+const performanceRaceBtn = document.getElementById("performance-race-btn");
+const raceCalendar = document.getElementById("race-calendar");
+
+const performanceRaceHeader = document.getElementById("performance-race-header");
+const perfRaceDateDisplay = document.getElementById("perf-race-date-display");
+const perfRaceDistanceDisplay = document.getElementById("perf-race-distance-display");
+const perfRaceElevationDisplay = document.getElementById("perf-race-elevation-display");
+
+/* TEST */
+const testView = document.getElementById("test-view");
+const testRankingList = document.getElementById("test-ranking-list");
+const testBatteryInput = document.getElementById("test-battery-input");
+const testWeightInput = document.getElementById("test-weight-input");
+const testPercentInput = document.getElementById("test-percent-input");
+const testCalcBtn = document.getElementById("test-calc-btn");
+const testResetBtn = document.getElementById("test-reset-btn");
+const testTabs = document.querySelectorAll(".test-tab");
+const testTabContents = document.querySelectorAll(".test-tab-content");
+
+/* AUTH & ACCOUNT */
+const authOverlay = document.getElementById("auth-overlay");
+const authToggleLogin = document.getElementById("auth-toggle-login");
+const authToggleRegister = document.getElementById("auth-toggle-register");
+const authUsernameInput = document.getElementById("auth-username");
+const authPasswordInput = document.getElementById("auth-password");
+const authSubmitButton = document.getElementById("auth-submit");
+const authErrorLabel = document.getElementById("auth-error");
+const accountBadge = document.getElementById("account-badge");
+
+let authMode = "login";
+let selectedIndices = {};
+let currentView = "home";
+let allRaces = [];
+let performanceMode = "overall";
+let currentRaceSample = null;
+
+/* ACCOUNT UTILS */
+function getCurrentUserId() {
+  return localStorage.getItem(USER_ID_STORAGE_KEY);
+}
+function getCurrentUsername() {
+  return localStorage.getItem(USERNAME_STORAGE_KEY) || "";
+}
+function setCurrentUser(userId, username) {
+  localStorage.setItem(USER_ID_STORAGE_KEY, userId);
+  localStorage.setItem(USERNAME_STORAGE_KEY, username || "");
+  updateAccountBadge();
+}
+function clearCurrentUser() {
+  localStorage.removeItem(USER_ID_STORAGE_KEY);
+  localStorage.removeItem(USERNAME_STORAGE_KEY);
+  updateAccountBadge();
+}
+function updateAccountBadge() {
+  if (!accountBadge) return;
+  const uid = getCurrentUserId();
+  const name = getCurrentUsername();
+  if (!uid) accountBadge.textContent = "Nessun account";
+  else accountBadge.textContent = name ? ("@" + name) : uid;
+}
+
+/* AUTH UI */
+function showAuthOverlay(message) {
+  if (authOverlay) {
+    authOverlay.style.display = "flex";
+    if (message && authErrorLabel) authErrorLabel.textContent = message;
+  }
+}
+function hideAuthOverlay() {
+  if (authOverlay) {
+    authOverlay.style.display = "none";
+    if (authErrorLabel) authErrorLabel.textContent = "";
+  }
+}
+function setAuthMode(mode) {
+  authMode = mode === "register" ? "register" : "login";
+  if (!authToggleLogin || !authToggleRegister || !authSubmitButton) return;
+  if (authMode === "login") {
+    authToggleLogin.classList.add("active");
+    authToggleRegister.classList.remove("active");
+    authSubmitButton.textContent = "Entra";
+  } else {
+    authToggleLogin.classList.remove("active");
+    authToggleRegister.classList.add("active");
+    authSubmitButton.textContent = "Crea account";
+  }
+  if (authErrorLabel) authErrorLabel.textContent = "";
+}
+if (authToggleLogin) authToggleLogin.onclick = () => setAuthMode("login");
+if (authToggleRegister) authToggleRegister.onclick = () => setAuthMode("register");
+if (accountBadge) {
+  accountBadge.onclick = () => {
+    const confirmLogout = confirm("Vuoi cambiare account? (Logout)");
+    if (!confirmLogout) return;
+    clearCurrentUser();
+    showAuthOverlay();
+  };
+}
+
+/* AUTH SUBMIT */
+async function handleAuthSubmit() {
+  if (!authUsernameInput || !authPasswordInput) return;
+  const username = authUsernameInput.value.trim();
+  const password = authPasswordInput.value;
+
+  if (!username || !password) {
+    if (authErrorLabel) authErrorLabel.textContent = "Inserisci username e password.";
+    return;
+  }
+
+  const payload = {
+    action: authMode === "register" ? "createUser" : "login",
+    username,
+    password
+  };
+
+  try {
+    if (authErrorLabel) authErrorLabel.textContent = "Attendere...";
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => null);
+    if (!data || !data.ok) {
+      if (authErrorLabel) authErrorLabel.textContent = data && data.error ? data.error : "Errore autenticazione";
+      return;
+    }
+    const userId = data.userId;
+    setCurrentUser(userId, username);
+    hideAuthOverlay();
+    await loadBikers(true);
+    showView("home");
+  } catch (e) {
+    console.error(e);
+    if (authErrorLabel) authErrorLabel.textContent = "Errore di rete.";
+  }
+}
+if (authSubmitButton) authSubmitButton.onclick = handleAuthSubmit;
+
+/* PERFORMANCE BUTTON TEXT */
+function updateResetPerformanceButton() {
+  const btn = document.getElementById("reset-performance-btn");
+  if (!btn) return;
+  if (performanceMode === "race" && currentRaceSample) btn.textContent = "Cancella";
+  else btn.textContent = "Reset";
+}
+
+/* LOAD BIKERS */
+async function loadBikers(force = false) {
+  const userId = getCurrentUserId();
+  if (!userId) {
+    showAuthOverlay("Effettua il login per vedere i tuoi bikers.");
+    return [];
+  }
+  if (!force && window.__bikersCache.length > 0) return window.__bikersCache;
+  try {
+    const url = API_URL + "?action=getBikers&userId=" + encodeURIComponent(userId);
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("Errore rete");
+    const text = await res.text();
+    const data = JSON.parse(text);
+    if (!data.ok) throw new Error(data.error || "Errore API getBikers");
+    const bikers = Array.isArray(data.bikers) ? data.bikers : [];
+    window.__bikersCache = bikers;
+    return bikers;
+  } catch (e) {
+    console.error(e);
+    return window.__bikersCache;
+  }
+}
+
+/* SAVE BIKERS */
+async function saveBikersToServer(bikers) {
+  const userId = getCurrentUserId();
+  if (!userId) {
+    showAuthOverlay("Effettua il login per salvare i bikers.");
+    return;
+  }
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify({
+        action: "saveBikers",
+        userId,
+        bikers
+      })
+    });
+    const data = await res.json().catch(() => null);
+    if (!data || !data.ok) {
+      console.error("API saveBikers error", data);
+      alert("Errore salvataggio bikers");
+      return;
+    }
+    window.__bikersCache = data.bikers || [];
+  } catch (e) {
+    console.error(e);
+    alert("Errore salvataggio");
+  }
+}
+
+/* BOTTONI VIEW */
+function updateButtonsForView(mode) {
+  if (mode === "home") {
+    mainButtons.style.display = "none";
+    return;
+  }
+
+  if (mode === "db") {
+    mainButtons.style.display = "none";
+    return;
+  }
+
+  mainButtons.style.display = "flex";
+  mainButtons.style.flexDirection = "column";
+  mainButtons.style.justifyContent = "flex-start";
+
+  [btnDb, btnSelect, btnGara, calcBtn, btnReset, saveRaceButton].forEach(b => {
+    b.style.display = "none";
+    b.style.flex = "";
+    b.style.marginLeft = "";
+    b.style.marginRight = "";
+  });
+
+  btnDb.style.background = "#FDE000"; btnDb.style.color = "#111";
+  btnSelect.style.background = "#CC0000"; btnSelect.style.color = "#fff";
+  btnGara.style.background = "#CC0000"; btnGara.style.color = "#fff";
+  calcBtn.style.background = "#CC0000"; calcBtn.style.color = "#fff";
+  btnReset.style.background = "#6b7280"; btnReset.style.color = "#fff";
+
+  calcBtn.textContent = "Calcola classifica";
+
+  if (mode === "select") {
+    mainButtons.style.flexDirection = "column";
+    if (btnGara) {
+      btnGara.style.display = "block";
+      btnGara.style.flex = "none";
+    }
+  } else if (mode === "percent") {
+    mainButtons.style.flexDirection = "row";
+    mainButtons.style.justifyContent = "space-between";
+    btnSelect.style.display = "block";
+    calcBtn.style.display = "block";
+    calcBtn.textContent = "Conferma dati";
+    btnSelect.style.background = "#FDE000"; btnSelect.style.color = "#111";
+    btnSelect.style.flex = "1"; calcBtn.style.flex = "1";
+    btnSelect.style.marginRight = "4px"; calcBtn.style.marginLeft = "4px";
+  } else if (mode === "raceinfo") {
+    calcBtn.style.display = "block";
+  } else if (mode === "results") {
+    // Bottoni risultati: affiancati, più alti e con angoli smussati
+    mainButtons.style.flexDirection = "row";
+    mainButtons.style.justifyContent = "space-between";
+
+    if (btnReset) {
+      btnReset.style.display = "block";
+      btnReset.style.background = "#FDE000";
+      btnReset.style.color = "#111";
+      btnReset.style.flex = "1";
+      btnReset.style.marginRight = "6px";
+      btnReset.style.borderRadius = "14px"; // smussato, non a pillola
+      btnReset.style.padding = "24px";      // altezza doppia
+    }
+    if (saveRaceButton) {
+      saveRaceButton.style.display = "block";
+      saveRaceButton.style.background = "#CC0000";
+      saveRaceButton.style.color = "#fff";
+      saveRaceButton.style.flex = "1";
+      saveRaceButton.style.marginLeft = "6px";
+      saveRaceButton.style.borderRadius = "14px"; // smussato, non a pillola
+      saveRaceButton.style.padding = "24px";      // altezza doppia
+    }
+  } else if (mode === "performance" || mode === "test") {
+    mainButtons.style.display = "none";
+  }
+}
+
+function showView(mode) {
+  currentView = mode;
+
+  if (mode === "home") document.body.classList.add("home-mode");
+  else document.body.classList.remove("home-mode");
+
+  if (homeView) homeView.style.display = (mode === "home") ? "flex" : "none";
+
+  dbContainer.style.display       = (mode === "db")      ? "block" : "none";
+  selectContainer.style.display   = (mode === "select")  ? "block" : "none";
+  playersContainer.style.display  = (mode === "percent") ? "block" : "none";
+  raceInfoContainer.style.display = (mode === "raceinfo")? "flex"  : "none";
+  performanceContainer.style.display = (mode === "performance") ? "block" : "none";
+  if (testView) testView.style.display = (mode === "test") ? "block" : "none";
+  rankingBox.style.display        = (mode === "results") ? "block" : "none";
+
+  updateButtonsForView(mode);
+}
+
+/* DB VIEW */
+async function renderDBView() {
+  const userId = getCurrentUserId();
+  if (!userId) {
+    showAuthOverlay("Effettua il login per gestire i bikers.");
+    return;
+  }
+  dbContainer.innerHTML = "";
+  const bikers = await loadBikers(true);
+  bikers.forEach(createDBCard);
+
+  const row = document.createElement("div");
+  row.className = "db-buttons-inline";
+  row.id = "db-buttons-inline";
+
+  const add = document.createElement("button");
+  add.className = "btn-small btn-db-add";
+  add.textContent = "Aggiungi Biker";
+  add.onclick = () => createDBCard(null);
+
+  const save = document.createElement("button");
+  save.className = "btn-small btn-db-save";
+  save.textContent = "Salva Database";
+  save.onclick = () => saveDatabaseFromView();
+
+  row.appendChild(add);
+  row.appendChild(save);
+  dbContainer.appendChild(row);
+}
+
+function createDBCard(b) {
+  const card = document.createElement("div");
+  card.className = "player-card";
+
+  const name    = b ? (b.name    ?? "") : "";
+  const battery = b ? (b.battery ?? "") : "";
+  const weight  = b ? (b.weight  ?? "") : "";
+
+  card.innerHTML = `
+    <div class="player-title">
+      <span>${name || "Nuovo Biker"}</span>
+      <button class="delete-biker">✕</button>
+    </div>
+    <input class="name-input" placeholder="Nome" value="${name}">
+    <input class="battery-input" type="number" placeholder="Wh" value="${battery}">
+    <input class="weight-input" type="number" placeholder="Kg" value="${weight}">
+  `;
+
+  card.querySelector(".delete-biker").onclick = () => card.remove();
+
+  const btnRow = document.getElementById("db-buttons-inline");
+  if (btnRow) dbContainer.insertBefore(card, btnRow);
+  else dbContainer.appendChild(card);
+}
+
+async function saveDatabaseFromView() {
+  const cards = [...dbContainer.getElementsByClassName("player-card")];
+  const bikers = cards.map(c => {
+    const nameVal = c.querySelector(".name-input").value.trim();
+    const batteryVal = parseFloat(c.querySelector(".battery-input").value);
+    const weightVal  = parseFloat(c.querySelector(".weight-input").value);
+
+    const validName    = !!nameVal;
+    const validBattery = Number.isFinite(batteryVal) && batteryVal > 0;
+    const validWeight  = Number.isFinite(weightVal)  && weightVal > 0;
+
+    if (!validName || !validBattery || !validWeight) return null;
+
+    return { name: nameVal, battery: batteryVal, weight: weightVal };
+  }).filter(Boolean);
+
+  if (bikers.length === 0) {
+    alert("Inserisci almeno un biker valido (nome, Wh, Kg).");
+    return;
+  }
+
+  if (bikers.length > MAX_BIKERS) {
+    alert("Numero massimo di biker superato (" + MAX_BIKERS + ").");
+    return;
+  }
+
+  await saveBikersToServer(bikers);
+  await renderSelectView();
+  showView("select");
+}
+
+/* SELECT VIEW */
+async function renderSelectView() {
+  const userId = getCurrentUserId();
+  if (!userId) {
+    showAuthOverlay("Effettua il login per selezionare i bikers.");
+    return;
+  }
+  selectContainer.innerHTML = "";
+  selectedIndices = {};
+  const bikers = await loadBikers();
+  bikers.forEach((b, i) => createParticipantRow(b, i));
+}
+
+function createParticipantRow(b, i) {
+  const row = document.createElement("div");
+  row.className = "participant-row";
+  row.dataset.index = i;
+
+  row.innerHTML = `
+    <div class="participant-main">
+      <div class="participant-bullet"></div>
+      <span class="participant-name">${b.name}</span>
+    </div>
+    <div class="participant-meta">${b.battery} Wh · ${b.weight} kg</div>
+  `;
+
+  row.onclick = () => {
+    selectedIndices[i] = !selectedIndices[i];
+    row.classList.toggle("selected");
+  };
+
+  selectContainer.appendChild(row);
+}
+
+/* GARA */
+function clearPlayersUI() { playersContainer.innerHTML = ""; }
+
+async function buildGaraFromSelection() {
+  const userId = getCurrentUserId();
+  if (!userId) {
+    showAuthOverlay("Effettua il login per inserire i dati di gara.");
+    return;
+  }
+  const bikers = await loadBikers();
+  clearPlayersUI();
+  let any = false;
+  Object.keys(selectedIndices).forEach(i => {
+    if (selectedIndices[i]) {
+      createGaraCard(bikers[i]);
+      any = true;
+    }
+  });
+  if (!any) {
+    alert("Seleziona almeno un Biker partecipante.");
+    return;
+  }
+  showView("percent");
+}
+
+function createGaraCard(b) {
+  const c = document.createElement("div");
+  c.className = "player-card";
+  c.innerHTML = `
+    <div class="player-title"><span>${b.name}</span></div>
+    <input type="hidden" class="name-input" value="${b.name}">
+    <input type="hidden" class="battery-input" value="${b.battery}">
+    <input type="hidden" class="weight-input" value="${b.weight}">
+    <input type="number" class="percent-input" placeholder="% residua" min="0" max="100">
+  `;
+  playersContainer.appendChild(c);
+}
+
+/* COLLECT */
+function collectResultsFromPercentView() {
+  const cards = [...playersContainer.getElementsByClassName("player-card")];
+  const results = cards.map(c => {
+    const name = c.querySelector(".name-input").value.trim();
+    const battery = parseFloat(c.querySelector(".battery-input").value);
+    const weight  = parseFloat(c.querySelector(".weight-input").value);
+    let percent   = parseFloat(c.querySelector(".percent-input").value);
+
+    if (!name) return null;
+    if (!Number.isFinite(battery) || battery <= 0) return null;
+    if (!Number.isFinite(weight)  || weight  <= 0) return null;
+    if (!Number.isFinite(percent)) return null;
+
+    if (percent < 0) percent = 0;
+    if (percent > 100) percent = 100;
+
+    const consumedWh = battery * (1 - percent / 100);
+    const efficiencyWhPerKg = weight > 0 ? (consumedWh / weight) : Infinity;
+    const score = (efficiencyWhPerKg > 0 && Number.isFinite(efficiencyWhPerKg))
+      ? 10 / efficiencyWhPerKg
+      : 0;
+    if (!Number.isFinite(score)) return null;
+
+    return { name, percent, score };
+  }).filter(Boolean);
+
+  window.__coyoteResults = results;
+}
+
+/* FORMATTARE DATA ITA */
+function formatItalianDate(dateStr) {
+  if (!dateStr) return "";
+  const [year, month, day] = dateStr.split("-");
+  const mesi = [
+    "gennaio","febbraio","marzo","aprile","maggio","giugno",
+    "luglio","agosto","settembre","ottobre","novembre","dicembre"
+  ];
+  const mIndex = parseInt(month, 10) - 1;
+  const nomeMese = mesi[mIndex] || "";
+  if (!nomeMese) return dateStr;
+  return parseInt(day, 10) + " " + nomeMese + " " + year;
+}
+
+function updateRaceDateDisplay() {
+  const v = raceDateInput.value;
+  raceDateDisplay.textContent = v ? formatItalianDate(v) : "";
+}
+
+/* DATE PER PERFORMANCE */
+function formatRaceDateForDisplay(raw) {
+  if (!raw) return "";
+  const s = raw.toString().trim();
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    return formatItalianDate(s);
+  }
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)) {
+    const parts = s.split("/");
+    const dd = parts[0].padStart(2, "0");
+    const mm = parts[1].padStart(2, "0");
+    const yyyy = parts[2];
+    return formatItalianDate(`${yyyy}-${mm}-${dd}`);
+  }
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    const yyyy = d.getUTCFullYear();
+    const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(d.getUTCDate()).padStart(2, "0");
+    return formatItalianDate(`${yyyy}-${mm}-${dd}`);
+  }
+  return s;
+}
+
+/* COLORI BATTERIA & CLASSIFICA */
+function batteryColorForPercent(p) {
+  if (!Number.isFinite(p)) return "#9ca3af";
+  if (p < 25) return "#ef4444";
+  if (p < 50) return "#f97316";
+  if (p < 75) return "#eab308";
+  return "#22c55e";
+}
+
+function calculate() {
+  const results = window.__coyoteResults || [];
+
+  const dateVal = raceDateInput.value;
+  const circuito = raceCircuitInput.value.trim();
+  const km = raceDistanceInput.value.trim();
+  const disl = raceElevationInput.value.trim();
+
+  const formattedDate = dateVal ? formatItalianDate(dateVal) : "";
+
+  let headerText = "";
+  if (formattedDate && circuito) headerText = circuito + " - " + formattedDate;
+  else if (formattedDate) headerText = formattedDate;
+  else if (circuito) headerText = circuito;
+
+  raceDateDisplay.textContent = headerText;
+  raceDistanceDisplay.textContent = km ? km + " km" : "";
+  raceElevationDisplay.textContent = disl ? disl + " m" : "";
+
+  showView("results");
+  rankingList.innerHTML = "";
+
+  if (!results.length) {
+    const li = document.createElement("li");
+    li.textContent = "Nessun dato valido. Inserisci le %.";
+    rankingList.appendChild(li);
+    return;
+  }
+
+  results.sort((a, b) => b.score - a.score);
+
+  results.forEach((r, i) => {
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <div class="result-left">
+        <div class="result-topline">
+          <span class="position-number">${i + 1}</span>
+          <span class="result-name">${r.name}</span>
+        </div>
+        <div class="battery-row">
+          <div class="battery">
+            <div class="battery-level" style="background:${batteryColorForPercent(r.percent)}"></div>
+            <span class="battery-percent-label">${r.percent}%</span>
+          </div>
+        </div>
+      </div>
+      <div class="result-right">
+        <div class="right-topline">
+          <span class="medal">${["🥇","🥈","🥉"][i] || "🏁"}</span>
+          <span class="result-score">${r.score.toFixed(1)}</span>
+        </div>
+      </div>
+    `;
+
+    const level = li.querySelector(".battery-level");
+    setTimeout(() => {
+      const safePercent = Number.isFinite(r.percent) ? r.percent : 0;
+      level.style.width = (Math.round(safePercent / 4) * 4) + "%";
+    }, 50);
+
+    rankingList.appendChild(li);
+  });
+}
+
+/* MENU ICON */
+const menuIcon = document.getElementById("menu-icon");
+if (menuIcon) menuIcon.onclick = () => showView("home");
+
+/* HOME BUTTONS */
+if (homeBtnRace) {
+  homeBtnRace.onclick = async () => {
+    await renderSelectView();
+    showView("select");
+  };
+}
+if (homeBtnPerformance) {
+  homeBtnPerformance.onclick = () => loadPerformanceView();
+}
+if (homeBtnTest) {
+  homeBtnTest.onclick = () => {
+    initTestView();
+    showView("test");
+  };
+}
+if (homeBtnBikers) {
+  homeBtnBikers.onclick = async () => {
+    await renderDBView();
+    showView("db");
+  };
+}
+if (homeBtnVersion) {
+  homeBtnVersion.onclick = () => alert("Versione " + APP_VERSION);
+}
+
+/* MAIN BUTTONS */
+btnDb.onclick = () => { renderDBView(); showView("db"); };
+btnSelect.onclick = () => { renderSelectView(); showView("select"); };
+btnGara.onclick = () => buildGaraFromSelection();
+
+calcBtn.onclick = () => {
+  if (currentView === "percent") {
+    collectResultsFromPercentView();
+    if (!window.__coyoteResults || !window.__coyoteResults.length) {
+      alert("Inserisci almeno una percentuale valida.");
+      return;
+    }
+    showView("raceinfo");
+  } else if (currentView === "raceinfo") {
+    calculate();
+  }
+};
+
+btnReset.onclick = () => {
+  rankingList.innerHTML = "";
+  raceDateInput.value = "";
+  raceCircuitInput.value = "";
+  raceDistanceInput.value = "";
+  raceElevationInput.value = "";
+  raceDateDisplay.textContent = "";
+  raceDistanceDisplay.textContent = "";
+  raceElevationDisplay.textContent = "";
+  window.__coyoteResults = [];
+  selectedIndices = {};
+  renderSelectView();
+  showView("select");
+};
+
+/* INVIO GARA AL DB – POST text/plain con no-cors */
+async function sendRaceToDatabase() {
+  if (!window.__coyoteResults || !window.__coyoteResults.length) {
+    alert("Prima calcola la classifica (score) per la gara.");
+    return;
+  }
+
+  const userId = getCurrentUserId();
+  if (!userId) {
+    showAuthOverlay("Effettua il login per salvare le gare.");
+    return;
+  }
+
+  const dateVal = raceDateInput.value;
+  const circuito = (raceCircuitInput.value || "").trim();
+  const km = parseFloat(raceDistanceInput.value) || 0;
+  const disl = parseFloat(raceElevationInput.value) || 0;
+
+  const payload = {
+    action: "saveRace",
+    userId,
+    race: {
+      date: dateVal || "",
+      circuit: circuito || "",
+      km: km,
+      elevation: disl,
+      results: window.__coyoteResults
+    }
+  };
+
+  try {
+    await fetch(API_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain" },
+      body: JSON.stringify(payload)
+    });
+
+    alert("Gara inviata al nuovo database (controlla il foglio Google).");
+  } catch (e) {
+    console.error(e);
+    alert("Errore di rete nell'invio della gara al database.");
+  }
+}
+if (saveRaceButton) saveRaceButton.onclick = sendRaceToDatabase;
+
+/* PERFORMANCE: MEDIE */
+function computeWeightedAveragesByKm(races) {
+  const bikerStats = {};
+  (races || []).forEach(r => {
+    const name = r.name;
+    const score = Number(r.score);
+    if (!name || !Number.isFinite(score)) return;
+
+    const kmVal = Number(r.km);
+    const weight = Number.isFinite(kmVal) && kmVal > 0 ? kmVal : 1;
+
+    if (!bikerStats[name]) bikerStats[name] = { wsum: 0, wtot: 0 };
+    bikerStats[name].wsum += score * weight;
+    bikerStats[name].wtot += weight;
+  });
+
+  return Object.entries(bikerStats).map(([name, s]) => ({
+    name,
+    avg: s.wtot > 0 ? (s.wsum / s.wtot) : 0
+  }));
+}
+
+function renderPerformanceBars(entries) {
+  if (!performanceBars) return;
+
+  if (!entries || !entries.length) {
+    performanceBars.innerHTML = "";
+    if (performanceEmpty) {
+      performanceEmpty.textContent = "Nessun dato valido.";
+      performanceEmpty.style.display = "block";
+    }
+    return;
+  }
+
+  const maxScore = Math.max(...entries.map(e => e[1])) || 1;
+  performanceBars.innerHTML = "";
+  if (performanceEmpty) performanceEmpty.style.display = "none";
+
+  entries.sort((a, b) => b[1] - a[1]);
+  const lastIndex = entries.length - 1;
+
+  entries.forEach((entry, index) => {
+    const [name, total] = entry;
+
+    const bar = document.createElement("div");
+    bar.style.flex = "1";
+    bar.style.minWidth = "24px";
+    bar.style.display = "flex";
+    bar.style.flexDirection = "column";
+    bar.style.alignItems = "center";
+    bar.style.justifyContent = "flex-end";
+
+    const medal = document.createElement("div");
+    let medalEmoji = "";
+    if (index === 0) medalEmoji = "🥇";
+    else if (index === 1) medalEmoji = "🥈";
+    else if (index === 2) medalEmoji = "🥉";
+    else if (index === lastIndex) medalEmoji = "🍗";
+    medal.textContent = medalEmoji;
+    medal.style.fontSize = "32px";
+    medal.style.marginBottom = "2px";
+    if (!medalEmoji) medal.style.visibility = "hidden";
+
+    const val = document.createElement("div");
+    val.textContent = total.toFixed(1);
+    val.style.fontSize = "12px";
+    val.style.color = "#dc2626";
+    val.style.fontWeight = "700";
+    val.style.marginBottom = "2px";
+
+    const inner = document.createElement("div");
+    inner.style.width = "100%";
+    inner.style.borderRadius = "6px 6px 0 0";
+    inner.style.background = "linear-gradient(to top, #CC0000, #F97316)";
+    inner.style.height = "0%";
+
+    const label = document.createElement("div");
+    label.textContent = name;
+    label.style.fontSize = "11px";
+    label.style.color = "#111827";
+    label.style.marginTop = "4px";
+    label.style.textAlign = "center";
+    label.style.whiteSpace = "nowrap";
+    label.style.overflow = "hidden";
+    label.style.textOverflow = "ellipsis";
+
+    bar.appendChild(medal);
+    bar.appendChild(val);
+    bar.appendChild(inner);
+    bar.appendChild(label);
+    performanceBars.appendChild(bar);
+
+    requestAnimationFrame(() => {
+      const h = Math.max(6, (total / maxScore) * 100);
+      inner.style.height = h + "%";
+    });
+  });
+}
+
+function updatePerformanceRaceHeader(raceSample) {
+  if (!performanceRaceHeader) return;
+
+  if (!raceSample) {
+    performanceRaceHeader.style.display = "none";
+    if (perfRaceDateDisplay) perfRaceDateDisplay.textContent = "";
+    if (perfRaceDistanceDisplay) perfRaceDistanceDisplay.textContent = "";
+    if (perfRaceElevationDisplay) perfRaceElevationDisplay.textContent = "";
+    return;
+  }
+
+  const rawDate = getRaceDateString(raceSample);
+  const circuit = (raceSample.circuit || "").toString().trim();
+  const kmVal = Number(raceSample.km);
+  const elevVal = Number(raceSample.elevation || 0);
+
+  const dateText = formatRaceDateForDisplay(rawDate);
+  let headerText = "";
+  if (circuit && dateText) headerText = circuit + " - " + dateText;
+  else if (dateText) headerText = dateText;
+  else if (circuit) headerText = circuit;
+
+  if (perfRaceDateDisplay) perfRaceDateDisplay.textContent = headerText;
+  if (perfRaceDistanceDisplay) {
+    perfRaceDistanceDisplay.textContent = Number.isFinite(kmVal) && kmVal > 0 ? kmVal + " km" : "";
+  }
+  if (perfRaceElevationDisplay) {
+    perfRaceElevationDisplay.textContent = Number.isFinite(elevVal) && elevVal > 0 ? elevVal + " m" : "";
+  }
+
+  performanceRaceHeader.style.display = "block";
+}
+
+function renderPerformanceOverall() {
+  performanceMode = "overall";
+  currentRaceSample = null;
+  updateResetPerformanceButton();
+
+  const races = allRaces || [];
+  if (!races.length) {
+    if (performanceEmpty) {
+      performanceEmpty.textContent = "Nessuna gara registrata.";
+      performanceEmpty.style.display = "block";
+    }
+    if (performanceBars) performanceBars.innerHTML = "";
+    updatePerformanceRaceHeader(null);
+    return;
+  }
+
+  if (performanceTitle && performanceSubtitle) {
+    performanceTitle.textContent = "Performance complessive";
+    performanceSubtitle.textContent = "Media pesata delle performance su tutte le gare per ogni biker.";
+  }
+
+  const avgsArr = computeWeightedAveragesByKm(races);
+  const entries = avgsArr.map(e => [e.name, e.avg]);
+  renderPerformanceBars(entries);
+  updatePerformanceRaceHeader(null);
+}
+
+function getRaceDateString(r) {
+  if (!r) return "";
+  return (r.date || r.data || r.raceDate || r.garaDate || r.gara || "").toString().trim();
+}
+
+function renderPerformanceForRaceFilter(query) {
+  const races = allRaces || [];
+  if (!races.length) {
+    alert("Nessuna gara registrata nel database.");
+    updatePerformanceRaceHeader(null);
+    return;
+  }
+  const q = (query || "").trim().toLowerCase();
+  if (!q) return;
+
+  const filtered = races.filter(r => {
+    const d = getRaceDateString(r).toLowerCase();
+    const c = (r.circuit || "").toString().toLowerCase();
+    return d === q || d.includes(q) || c.includes(q);
+  });
+
+  if (!filtered.length) {
+    alert("Nessuna gara trovata per: " + query);
+    updatePerformanceRaceHeader(null);
+    return;
+  }
+
+  performanceMode = "race";
+  currentRaceSample = filtered[0] || null;
+  updateResetPerformanceButton();
+
+  if (performanceTitle && performanceSubtitle) {
+    performanceTitle.textContent = "Gara specifica";
+    performanceSubtitle.textContent = "";
+  }
+
+  const avgsArr = computeWeightedAveragesByKm(filtered);
+  const entries = avgsArr.map(e => [e.name, e.avg]);
+  renderPerformanceBars(entries);
+
+  updatePerformanceRaceHeader(filtered[0]);
+}
+
+/* CALENDARIO GARE */
+function openRaceCalendar() {
+  const races = allRaces || [];
+  if (!races.length) {
+    alert("Nessuna gara registrata nel database.");
+    return;
+  }
+  if (!raceCalendar) return;
+
+  const datesMap = new Map();
+
+  function normalizeDate(str) {
+    if (!str) return null;
+    const s = str.trim();
+    let y, m, d;
+
+    if (s.includes("-")) {
+      const parts = s.split("T")[0].split("-");
+      if (parts.length !== 3) return null;
+      y = parseInt(parts[0], 10);
+      m = parseInt(parts[1], 10);
+      d = parseInt(parts[2], 10);
+    }
+    else if (s.includes("/")) {
+      const parts = s.split("/");
+      if (parts.length !== 3) return null;
+      d = parseInt(parts[0], 10);
+      m = parseInt(parts[1], 10);
+      y = parseInt(parts[2], 10);
+    } else {
+      return null;
+    }
+
+    if (!y || !m || !d) return null;
+
+    const jsDate = new Date(y, m - 1, d + 1);
+    const fy = jsDate.getFullYear();
+    const fm = jsDate.getMonth() + 1;
+    const fd = jsDate.getDate();
+
+    return {
+      y: fy,
+      m: fm,
+      d: fd,
+      ymd: String(fy).padStart(4, "0") + "-" +
+           String(fm).padStart(2, "0") + "-" +
+           String(fd).padStart(2, "0")
+    };
+  }
+
+  races.forEach(r => {
+    const raw = getRaceDateString(r);
+    if (!raw) return;
+    const norm = normalizeDate(raw);
+    if (!norm) return;
+    const key = norm.ymd;
+    if (!datesMap.has(key)) {
+      datesMap.set(key, { rawDates: new Set(), races: [] });
+    }
+    const entry = datesMap.get(key);
+    entry.rawDates.add(raw);
+    entry.races.push(r);
+  });
+
+  if (!datesMap.size) {
+    alert("Nessuna data valida trovata nel database.");
+    return;
+  }
+
+  const allKeys = Array.from(datesMap.keys());
+  const parsed = allKeys.map(ymd => {
+    const [y, m, d] = ymd.split("-");
+    return {
+      y: parseInt(y, 10) || new Date().getFullYear(),
+      m: (parseInt(m, 10) || 1),
+      d: (parseInt(d, 10) || 1),
+      ymd
+    };
+  });
+
+  let minYear = Math.min(...parsed.map(p => p.y));
+  let maxYear = Math.max(...parsed.map(p => p.y));
+  if (!Number.isFinite(minYear) || !Number.isFinite(maxYear)) {
+    minYear = new Date().getFullYear();
+    maxYear = minYear;
+  }
+
+  const last = parsed[parsed.length - 1];
+  let currentYear = last.y;
+  let currentMonth = last.m - 1;
+
+  raceCalendar.innerHTML = "";
+
+  const header = document.createElement("div");
+  header.style.display = "flex";
+  header.style.alignItems = "center";
+  header.style.justifyContent = "space-between";
+  header.style.marginBottom = "8px";
+
+  const title = document.createElement("div");
+  title.style.fontWeight = "700";
+  title.style.fontSize = "14px";
+  title.textContent = "Seleziona una gara";
+  header.appendChild(title);
+
+  const closeBtn = document.createElement("button");
+  closeBtn.type = "button";
+  closeBtn.textContent = "✕";
+  closeBtn.style.border = "none";
+  closeBtn.style.background = "transparent";
+  closeBtn.style.cursor = "pointer";
+  closeBtn.style.fontSize = "14px";
+  closeBtn.style.fontWeight = "700";
+  closeBtn.onclick = () => raceCalendar.style.display = "none";
+  header.appendChild(closeBtn);
+
+  raceCalendar.appendChild(header);
+
+  const controlRow = document.createElement("div");
+  controlRow.style.display = "flex";
+  controlRow.style.alignItems = "center";
+  controlRow.style.justifyContent = "center";
+  controlRow.style.gap = "6px";
+  controlRow.style.marginBottom = "8px";
+
+  const prevBtn = document.createElement("button");
+  prevBtn.type = "button";
+  prevBtn.textContent = "◀";
+  prevBtn.style.border = "none";
+  prevBtn.style.borderRadius = "999px";
+  prevBtn.style.padding = "4px 8px";
+  prevBtn.style.cursor = "pointer";
+  prevBtn.style.background = "#fed7aa";
+  prevBtn.style.color = "#7c2d12";
+
+  const nextBtn = document.createElement("button");
+  nextBtn.type = "button";
+  nextBtn.textContent = "▶";
+  nextBtn.style.border = "none";
+  nextBtn.style.borderRadius = "999px";
+  nextBtn.style.padding = "4px 8px";
+  nextBtn.style.cursor = "pointer";
+  nextBtn.style.background = "#fed7aa";
+  nextBtn.style.color = "#7c2d12";
+
+  const monthLabel = document.createElement("div");
+  monthLabel.style.fontWeight = "600";
+  monthLabel.style.fontSize = "13px";
+
+  controlRow.appendChild(prevBtn);
+  controlRow.appendChild(monthLabel);
+  controlRow.appendChild(nextBtn);
+
+  raceCalendar.appendChild(controlRow);
+
+  const weekRow = document.createElement("div");
+  weekRow.style.display = "grid";
+  weekRow.style.gridTemplateColumns = "repeat(7, 1fr)";
+  weekRow.style.fontSize = "10px";
+  weekRow.style.textAlign = "center";
+  weekRow.style.marginBottom = "4px";
+  weekRow.style.color = "#6b7280";
+
+  const giorni = ["L","M","M","G","V","S","D"];
+  giorni.forEach(g => {
+    const cell = document.createElement("div");
+    cell.textContent = g;
+    weekRow.appendChild(cell);
+  });
+
+  raceCalendar.appendChild(weekRow);
+
+  const grid = document.createElement("div");
+  grid.style.display = "grid";
+  grid.style.gridTemplateColumns = "repeat(7, 1fr)";
+  grid.style.gap = "2px";
+  raceCalendar.appendChild(grid);
+
+  const mesiNomi = [
+    "Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno",
+    "Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"
+  ];
+
+  function buildMonth(year, month) {
+    grid.innerHTML = "";
+    monthLabel.textContent = mesiNomi[month] + " " + year;
+
+    const firstDay = new Date(year, month, 1);
+    const firstWeekday = (firstDay.getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < firstWeekday; i++) {
+      const empty = document.createElement("div");
+      empty.textContent = "";
+      grid.appendChild(empty);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const cell = document.createElement("button");
+      cell.type = "button";
+      cell.textContent = String(day);
+      cell.style.border = "none";
+      cell.style.borderRadius = "8px";
+      cell.style.padding = "4px 0";
+      cell.style.fontSize = "11px";
+      cell.style.cursor = "pointer";
+      cell.style.minHeight = "28px";
+
+      const mm = String(month + 1).padStart(2, "0");
+      const dd = String(day).padStart(2, "0");
+      const ymd = String(year).padStart(4, "0") + "-" + mm + "-" + dd;
+
+      if (datesMap.has(ymd)) {
+        const entry = datesMap.get(ymd);
+        const count = entry.races.length;
+        cell.style.background = "#fed7aa";
+        cell.style.color = "#7c2d12";
+        cell.style.fontWeight = "700";
+        cell.title = formatItalianDate(ymd) + (count > 1 ? " (" + count + " gare)" : " (1 gara)");
+      } else {
+        cell.style.background = "transparent";
+        cell.style.color = "#6b7280";
+      }
+
+      cell.onclick = () => {
+        if (!datesMap.has(ymd)) return;
+        const entry = datesMap.get(ymd);
+        const rawArr = Array.from(entry.rawDates);
+        const query = rawArr[0] || ymd;
+        renderPerformanceForRaceFilter(query);
+        raceCalendar.style.display = "none";
+      };
+
+      grid.appendChild(cell);
+    }
+  }
+
+  prevBtn.onclick = () => {
+    currentMonth -= 1;
+    if (currentMonth < 0) {
+      currentMonth = 11;
+      currentYear -= 1;
+    }
+    if (currentYear < minYear) {
+      currentYear = minYear;
+      currentMonth = 0;
+    }
+    buildMonth(currentYear, currentMonth);
+  };
+
+  nextBtn.onclick = () => {
+    currentMonth += 1;
+    if (currentMonth > 11) {
+      currentMonth = 0;
+      currentYear += 1;
+    }
+    if (currentYear > maxYear) {
+      currentYear = maxYear;
+      currentMonth = 11;
+    }
+    buildMonth(currentYear, currentMonth);
+  };
+
+  buildMonth(currentYear, currentMonth);
+  raceCalendar.style.display = "block";
+}
+
+/* PERFORMANCE GRAPH SIMPLE */
+function renderPerformanceGraph(races) {
+  const graph = document.getElementById("performance-graph");
+  if (!graph) return;
+  graph.innerHTML = "";
+
+  const avgsArr = computeWeightedAveragesByKm(races || []);
+  if (!avgsArr.length) return;
+
+  const maxVal = Math.max(...avgsArr.map(o => o.avg), 1);
+
+  avgsArr.forEach(({ name, avg }) => {
+    const bar = document.createElement("div");
+    bar.style.height = (150 * avg / maxVal) + "px";
+    bar.style.width = "20px";
+    bar.style.background = "linear-gradient(to top, #CC0000, #F97316)";
+    bar.style.borderRadius = "4px";
+    bar.title = name + ": " + avg.toFixed(1);
+
+    const label = document.createElement("div");
+    label.style.textAlign = "center";
+    label.style.fontSize = "10px";
+    label.style.whiteSpace = "nowrap";
+    label.style.overflow = "hidden";
+    label.style.textOverflow = "ellipsis";
+    label.style.marginTop = "4px";
+    label.textContent = name;
+
+    const container = document.createElement("div");
+    container.style.display = "flex";
+    container.style.flexDirection = "column";
+    container.style.alignItems = "center";
+    container.appendChild(bar);
+    container.appendChild(label);
+    graph.appendChild(container);
+  });
+}
+
+/* LOAD PERFORMANCE */
+async function loadPerformanceView() {
+  const userId = getCurrentUserId();
+  if (!userId) {
+    showAuthOverlay("Effettua il login per vedere le performance.");
+    return;
+  }
+
+  showView("performance");
+  if (!performanceBars) return;
+
+  performanceBars.innerHTML = "";
+  if (performanceEmpty) {
+    performanceEmpty.textContent = "Carico performance...";
+    performanceEmpty.style.display = "block";
+  }
+
+  try {
+    const url = API_URL + "?action=getRaces&userId=" + encodeURIComponent(userId);
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const txt = await res.text();
+    const data = JSON.parse(txt);
+    if (!data.ok) throw new Error(data.error || "Errore API getRaces");
+
+    const racesRaw = data.races || [];
+
+    const racesFlat = [];
+    racesRaw.forEach(race => {
+      const kmVal = Number(race.km) || 0;
+      const elevVal = Number(race.elevation) || 0;
+      (race.results || []).forEach(resBiker => {
+        racesFlat.push({
+          raceId: race.raceId,
+          userId: race.userId,
+          date: race.date,
+          circuit: race.circuit,
+          km: kmVal,
+          elevation: elevVal,
+          name: resBiker.name,
+          score: Number(resBiker.score)
+        });
+      });
+    });
+
+    allRaces = racesFlat;
+    renderPerformanceGraph(racesFlat);
+
+    if (!racesFlat.length) {
+      if (performanceEmpty) {
+        performanceEmpty.textContent = "Nessuna gara registrata.";
+        performanceEmpty.style.display = "block";
+      }
+      updatePerformanceRaceHeader(null);
+      return;
+    }
+
+    renderPerformanceOverall();
+  } catch (e) {
+    console.error(e);
+    if (performanceEmpty) {
+      performanceEmpty.textContent = "Errore nel caricamento delle performance.";
+      performanceEmpty.style.display = "block";
+    }
+    updatePerformanceRaceHeader(null);
+  }
+}
+
+/* TEST VIEW */
+function initTestView() {
+  if (!testRankingList) return;
+  testRankingList.innerHTML = "";
+
+  const li = document.createElement("li");
+  li.innerHTML = `
+    <div class="result-left">
+      <div class="battery-row">
+        <div class="battery">
+          <div class="battery-level" style="width:0%; background:#9ca3af;"></div>
+          <span class="battery-percent-label">--%</span>
+        </div>
+      </div>
+    </div>
+    <div class="result-right">
+      <div class="right-topline">
+        <span class="medal">🏁</span>
+        <span class="result-score">0.0</span>
+      </div>
+    </div>
+  `;
+  testRankingList.appendChild(li);
+
+  if (testBatteryInput) testBatteryInput.value = "";
+  if (testWeightInput) testWeightInput.value = "";
+  if (testPercentInput) testPercentInput.value = "";
+
+  testTabs.forEach(tab => tab.classList.remove("active"));
+  testTabContents.forEach(c => c.classList.remove("active"));
+  const firstTab = document.querySelector('.test-tab[data-tab="wh"]');
+  const firstContent = document.querySelector('.test-tab-content[data-tab="wh"]');
+  if (firstTab) firstTab.classList.add("active");
+  if (firstContent) firstContent.classList.add("active");
+}
+
+testTabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    const target = tab.getAttribute("data-tab");
+    testTabs.forEach(t => t.classList.remove("active"));
+    testTabContents.forEach(c => c.classList.remove("active"));
+    tab.classList.add("active");
+    const contentEl = document.querySelector('.test-tab-content[data-tab="' + target + '"]');
+    if (contentEl) contentEl.classList.add("active");
+  });
+});
+
+function calculateTest() {
+  if (!testRankingList) return;
+
+  const battery = parseFloat(testBatteryInput.value);
+  const weight = parseFloat(testWeightInput.value);
+  let percent = parseFloat(testPercentInput.value);
+
+  if (!Number.isFinite(battery) || battery <= 0 ||
+      !Number.isFinite(weight)  || weight  <= 0 ||
+      !Number.isFinite(percent)) {
+    alert("Inserisci Wh, Kg e % residua validi per il biker di test.");
+    return;
+  }
+
+  if (percent < 0) percent = 0;
+  if (percent > 100) percent = 100;
+
+  const consumedWh = battery * (1 - percent / 100);
+  const efficiencyWhPerKg = weight > 0 ? (consumedWh / weight) : Infinity;
+  const score = (efficiencyWhPerKg > 0 && Number.isFinite(efficiencyWhPerKg))
+    ? 10 / efficiencyWhPerKg
+    : 0;
+
+  const li = testRankingList.querySelector("li");
+  if (!li) return;
+
+  const levelElem = li.querySelector(".battery-level");
+  const percentLabel = li.querySelector(".battery-percent-label");
+  const scoreElem = li.querySelector(".result-score");
+  const medalElem = li.querySelector(".medal");
+
+  if (percentLabel) percentLabel.textContent = Math.round(percent) + "%";
+  if (scoreElem) scoreElem.textContent = score.toFixed(1);
+  if (medalElem) medalElem.textContent = "🏁";
+
+  if (levelElem) {
+    levelElem.style.background = batteryColorForPercent(percent);
+    requestAnimationFrame(() => {
+      levelElem.style.width = (Math.round(percent / 4) * 4) + "%";
+    });
+  }
+
+  const scenarioSpan = document.getElementById("test-scenario-display");
+  if (scenarioSpan && Number.isFinite(consumedWh) && efficiencyWhPerKg > 0) {
+    const eff = efficiencyWhPerKg.toFixed(1);
+    scenarioSpan.textContent = eff + " Wh/kg";
+  }
+}
+
+if (testCalcBtn) testCalcBtn.onclick = calculateTest;
+if (testResetBtn) testResetBtn.onclick = () => initTestView();
+
+/* PERFORMANCE BUTTONS */
+if (performanceOverallBtn) performanceOverallBtn.onclick = () => renderPerformanceOverall();
+if (performanceRaceBtn) performanceRaceBtn.onclick = () => openRaceCalendar();
+
+/* SERVICE WORKER */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker
+      .register("service-worker.js")
+      .catch(function (err) {
+        console.log("Service Worker registration failed:", err);
+      });
+  });
+}
+
+/* RESET/CANCELLA PERFORMANCE DB */
+const resetBtn = document.getElementById("reset-performance-btn");
+if (resetBtn) {
+  resetBtn.onclick = async () => {
+    const userId = getCurrentUserId();
+    if (!userId) {
+      showAuthOverlay("Effettua il login per modificare il database performance.");
+      return;
+    }
+
+    if (performanceMode === "race" && currentRaceSample && currentRaceSample.raceId) {
+      const conferma = confirm("Vuoi cancellare DEFINITIVAMENTE questa gara dal database PERFORMANCE?");
+      if (!conferma) return;
+      const pwd = prompt("Inserisci password per cancellare la gara:");
+      if (pwd !== "Coyote") { alert("Password errata."); return; }
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: {"Content-Type":"text/plain"},
+          body: JSON.stringify({
+            action: "deleteRace",
+            userId,
+            raceId: currentRaceSample.raceId,
+            adminPassword: pwd
+          })
+        });
+        alert("Gara cancellata dal nuovo database (controlla il foglio Google).");
+        await loadPerformanceView();
+      } catch (e) {
+        console.error(e);
+        alert("Errore nella cancellazione della gara.");
+      }
+      return;
+    }
+
+    const pwd = prompt("Inserisci password per resettare il database (dati performance di questo utente):");
+    if (pwd !== "Coyote") { alert("Password errata."); return; }
+    try {
+      await fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {"Content-Type":"text/plain"},
+        body: JSON.stringify({
+          action: "resetPerformance",
+          userId,
+          adminPassword: pwd
+        })
+      });
+      alert("Nuovo database resettato per questo utente. Controlla il foglio Google.");
+      await loadPerformanceView();
+    } catch(e) {
+      console.error(e);
+      alert("Errore nel reset.");
+    }
+  };
+}
+
+/* INIT */
+async function init() {
+  updateAccountBadge();
+  updateRaceDateDisplay();
+
+  const userId = getCurrentUserId();
+
+  if (!userId) {
+    showAuthOverlay();
+    showView("home");
+  } else {
+    await loadBikers();
+    showView("home");
+  }
+
+  clearInterval(loadingInterval);
+  const loadingScreen = document.getElementById("loading-screen");
+  if (loadingScreen) loadingScreen.style.display = "none";
+  const container = document.querySelector(".container");
+  if (container) container.style.opacity = "1";
+}
+
+init();
+</script>
+
+</body>
+</html>
