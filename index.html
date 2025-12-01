@@ -1024,7 +1024,7 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "2.40";
+const APP_VERSION = "2.43";
 const API_URL = "https://script.google.com/macros/s/AKfycbypSAJ04y8QGmNy4Yj-OnZytC9j_rFw7aBfh6hJ7iuxy_LJVAvok_dKPxy44ZWpCNq0/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
@@ -1980,7 +1980,7 @@ function renderPerformanceBars(entries) {
     if (!medalEmoji) medal.style.visibility = "hidden";
 
     const val = document.createElement("div");
-    val.textContent = total.toFixed(1);
+    val.textContent = total.toFixed(2);
     val.style.fontSize = "12px";
     val.style.color = "#dc2626";
     val.style.fontWeight = "700";
@@ -2412,7 +2412,7 @@ function renderPerformanceGraph(races) {
     bar.style.width = "20px";
     bar.style.background = "linear-gradient(to top, #CC0000, #F97316)";
     bar.style.borderRadius = "4px";
-    bar.title = name + ": " + avg.toFixed(1);
+    bar.title = name + ": " + avg.toFixed(2);
 
     const label = document.createElement("div");
     label.style.textAlign = "center";
