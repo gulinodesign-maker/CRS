@@ -581,7 +581,7 @@ body {
   }
 
   .home-box {
-    margin-top:10px;
+    margin-top: 40px;
     background:var(--coyote-yellow);
     border-radius:30px;
     padding:28px 22px;
@@ -862,7 +862,6 @@ body {
     <button class="home-btn" id="home-btn-performance">Performance</button>
     <button class="home-btn" id="home-btn-test">Test Algoritmo</button>
     <button class="home-btn" id="home-btn-bikers">Bikers</button>
-    <button class="home-btn" id="home-btn-account">Account</button>
   </div>
 
   <div style="height:60px;"></div>
@@ -1025,7 +1024,7 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "2.38";
+const APP_VERSION = "2.40";
 const API_URL = "https://script.google.com/macros/s/AKfycbypSAJ04y8QGmNy4Yj-OnZytC9j_rFw7aBfh6hJ7iuxy_LJVAvok_dKPxy44ZWpCNq0/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
@@ -1740,6 +1739,51 @@ if (homeBtnTest) {
 
 if (document.getElementById("home-btn-account")) {
   document.getElementById("home-btn-account").onclick = () => {
+    const uid = getCurrentUserId();
+    const username = getCurrentUsername();
+
+    // Se NON loggato → apri login
+    if (!uid) {
+      showAuthOverlay();
+      return;
+    }
+
+    // Se loggato → chiedi logout
+    const confirmLogout = confirm("Sei già connesso come " + (username ? ("@" + username) : uid) + ". Vuoi eseguire il logout?");
+    if (confirmLogout) {
+      clearCurrentUser();            // rimuove userId e username
+      alert("Logout eseguito.");     // feedback
+      showAuthOverlay();             // torna alla schermata di login
+    }
+  };
+}
+
+if (homeBtnBikers) {
+  homeBtnBikers.onclick = async () => {
+    await renderDBView();
+    showView("db");
+  };
+}
+
+/* MAIN BUTTONS */
+btnDb.onclick = () => { renderDBView(); showView("db"); };
+btnSelect.onclick = () => { renderSelectView(); showView("select"); };
+btnGara.onclick = () => buildGaraFromSelection();
+
+calcBtn.onclick = () => {
+  if (currentView === "percent") {
+    collectResultsFromPercentView();
+    if (!window.__coyoteResults || !window.__coyoteResults.length) {
+      alert("Inserisci almeno una percentuale valida.");
+      return;
+    }
+    showView("raceinfo");
+  } else if (currentView === "raceinfo") {
+    calculate();
+  }
+};
+if (document.getElementById("home-account-pill")) {
+  document.getElementById("home-account-pill").onclick = () => {
     const uid = getCurrentUserId();
     const username = getCurrentUsername();
 
