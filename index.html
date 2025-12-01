@@ -931,7 +931,7 @@
 <script>
 "use strict";
 
-const APP_VERSION = "2.17";
+const APP_VERSION = "2.18";
 const API_URL = "https://script.google.com/macros/s/AKfycbypSAJ04y8QGmNy4Yj-OnZytC9j_rFw7aBfh6hJ7iuxy_LJVAvok_dKPxy44ZWpCNq0/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
@@ -1618,7 +1618,22 @@ if (homeBtnTest) {
 
 if (document.getElementById("home-btn-account")) {
   document.getElementById("home-btn-account").onclick = () => {
-    showAuthOverlay();
+    const uid = getCurrentUserId();
+    const username = getCurrentUsername();
+
+    // Se NON loggato → apri login
+    if (!uid) {
+      showAuthOverlay();
+      return;
+    }
+
+    // Se loggato → chiedi logout
+    const confirmLogout = confirm("Sei già connesso come " + (username ? ("@" + username) : uid) + ". Vuoi eseguire il logout?");
+    if (confirmLogout) {
+      clearCurrentUser();            // rimuove userId e username
+      alert("Logout eseguito.");     // feedback
+      showAuthOverlay();             // torna alla schermata di login
+    }
   };
 }
 
