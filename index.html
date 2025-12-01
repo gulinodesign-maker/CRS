@@ -964,7 +964,7 @@
 <script>
 "use strict";
 
-const APP_VERSION = "2.19";
+const APP_VERSION = "2.20";
 const API_URL = "https://script.google.com/macros/s/AKfycbypSAJ04y8QGmNy4Yj-OnZytC9j_rFw7aBfh6hJ7iuxy_LJVAvok_dKPxy44ZWpCNq0/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
@@ -2000,7 +2000,7 @@ function openRaceCalendar() {
 
     if (!y || !m || !d) return null;
 
-    const jsDate = new Date(y, m - 1, d + 1);
+    const jsDate = new Date(y, m - 1, d);
     const fy = jsDate.getFullYear();
     const fm = jsDate.getMonth() + 1;
     const fd = jsDate.getDate();
