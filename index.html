@@ -705,6 +705,26 @@ body {
   #test-view .race-pill { max-width:none; min-width:200px; text-align:center; }
   #test-view .race-pill-value { font-size:24px; font-weight:800; }
 
+  /* Pillole valori Test Algoritmo sotto la batteria */
+  .test-data-pills {
+    display:flex;
+    gap:6px;
+    margin-top:6px;
+    flex-wrap:wrap;
+  }
+  .test-data-pill {
+    flex:1;
+    padding:4px 8px;
+    border-radius:999px;
+    text-align:center;
+    background:#020617;
+    color:var(--coyote-red);
+    font-size:14px;
+    font-weight:700;
+    border:1px solid rgba(248,113,113,0.7);
+    box-shadow:0 0 4px rgba(0,0,0,0.5);
+  }
+
   /* CALENDARIO PERFORMANCE COME POPUP GRANDE */
   #race-calendar {
     position:fixed;
@@ -952,7 +972,14 @@ body {
       <ol id="test-ranking-list"></ol>
     </div>
 
-    <div id="test-inputs">
+    
+<div id="test-data-pills-container" style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;justify-content:center;">
+  <div class="test-data-pill" id="pill-out-wh">Wh: --</div>
+  <div class="test-data-pill" id="pill-out-kg">Kg: --</div>
+  <div class="test-data-pill" id="pill-out-percent">%: --</div>
+</div>
+
+<div id="test-inputs">
       <div class="test-tabs">
         <button type="button" class="test-tab active" data-tab="wh">Wh batteria</button>
         <button type="button" class="test-tab" data-tab="kg">Peso biker (kg)</button>
@@ -990,7 +1017,7 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "2.28";
+const APP_VERSION = "2.32";
 const API_URL = "https://script.google.com/macros/s/AKfycbypSAJ04y8QGmNy4Yj-OnZytC9j_rFw7aBfh6hJ7iuxy_LJVAvok_dKPxy44ZWpCNq0/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
@@ -2409,6 +2436,8 @@ function initTestView() {
           <span class="battery-percent-label">--%</span>
         </div>
       </div>
+      
+      </div>
     </div>
     <div class="result-right">
       <div class="right-topline">
@@ -2472,10 +2501,19 @@ function calculateTest() {
   const percentLabel = li.querySelector(".battery-percent-label");
   const scoreElem = li.querySelector(".result-score");
   const medalElem = li.querySelector(".medal");
+  
 
   if (percentLabel) percentLabel.textContent = Math.round(percent) + "%";
   if (scoreElem) scoreElem.textContent = score.toFixed(1);
   if (medalElem) medalElem.textContent = "🏁";
+  // Update external pills
+  const outWh = document.getElementById("pill-out-wh");
+  const outKg = document.getElementById("pill-out-kg");
+  const outP = document.getElementById("pill-out-percent");
+  if (outWh && Number.isFinite(battery)) outWh.textContent = "Wh: " + battery.toFixed(0);
+  if (outKg && Number.isFinite(weight)) outKg.textContent = "Kg: " + weight.toFixed(1);
+  if (outP && Number.isFinite(percent)) outP.textContent = "%: " + Math.round(percent);
+
 
   if (levelElem) {
     levelElem.style.background = batteryColorForPercent(percent);
