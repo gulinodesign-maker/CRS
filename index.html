@@ -507,18 +507,20 @@ body {
 
   /* BANNER IN ALTO */
   #top-banner-wrap {
-    max-width:900px;
-    margin:0 auto 16px;
+    width:100%;
+    margin:0 0 16px 0;
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:8px;
   }
   #top-banner {
-    width:auto;
-    max-width:70%;
+    flex:1;
+    width:100%;
+    max-width:100%;
     height:auto;
     display:block;
+    object-fit:contain;
   }
 
   /* MENU ICON & ACCOUNT BADGE */
@@ -1017,7 +1019,7 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "2.32";
+const APP_VERSION = "2.33";
 const API_URL = "https://script.google.com/macros/s/AKfycbypSAJ04y8QGmNy4Yj-OnZytC9j_rFw7aBfh6hJ7iuxy_LJVAvok_dKPxy44ZWpCNq0/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
