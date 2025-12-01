@@ -1033,6 +1033,37 @@ const USERNAME_STORAGE_KEY = "crs_username_v2";
 window.__bikersCache = [];
 let MAX_BIKERS = 20;
 
+
+// ===== Nuovo algoritmo CRS Score basato su peso relativo =====
+const BASE_WEIGHT_KG = 65;
+const WEIGHT_DELTA_FACTOR = 0.5;
+
+function computeCoyoteScore(batteryWh, weightKg, percentRemaining) {
+  const battery = parseFloat(batteryWh);
+  const weight  = parseFloat(weightKg);
+  let percent   = parseFloat(percentRemaining);
+
+  if (!Number.isFinite(battery) || battery <= 0) return null;
+  if (!Number.isFinite(weight)  || weight  <= 0) return null;
+  if (!Number.isFinite(percent)) return null;
+
+  if (percent < 0) percent = 0;
+  if (percent > 100) percent = 100;
+
+  const consumedWh = battery * (1 - percent / 100);
+  const effectiveWeight = BASE_WEIGHT_KG + (weight - BASE_WEIGHT_KG) * WEIGHT_DELTA_FACTOR;
+  const efficiencyWhPerKg = effectiveWeight > 0 ? (consumedWh / effectiveWeight) : Infinity;
+  const score = (efficiencyWhPerKg > 0 && Number.isFinite(efficiencyWhPerKg))
+    ? 10 / efficiencyWhPerKg
+    : 0;
+
+  if (!Number.isFinite(score)) return null;
+
+  return { percent, consumedWh, effectiveWeight, efficiencyWhPerKg, score };
+}
+// ===== Fine nuovo algoritmo =====
+
+
 /* Loading dots */
 let loadingDotCount = 0;
 const loadingInterval = setInterval(() => {
@@ -1586,14 +1617,10 @@ function collectResultsFromPercentView() {
     if (percent < 0) percent = 0;
     if (percent > 100) percent = 100;
 
-    const consumedWh = battery * (1 - percent / 100);
-    const efficiencyWhPerKg = weight > 0 ? (consumedWh / weight) : Infinity;
-    const score = (efficiencyWhPerKg > 0 && Number.isFinite(efficiencyWhPerKg))
-      ? 10 / efficiencyWhPerKg
-      : 0;
-    if (!Number.isFinite(score)) return null;
+    const calc = computeCoyoteScore(battery, weight, percent);
+    if (!calc) return null;
 
-    return { name, percent, score };
+    return { name, percent: calc.percent, score: calc.score };
   }).filter(Boolean);
 
   window.__coyoteResults = results;
@@ -1701,7 +1728,7 @@ function calculate() {
       <div class="result-right">
         <div class="right-topline">
           <span class="medal">${["🥇","🥈","🥉"][i] || "🏁"}</span>
-          <span class="result-score">${r.score.toFixed(1)}</span>
+          <span class="result-score">${r.score.toFixed(2)}</span>
         </div>
       </div>
     `;
@@ -2540,11 +2567,16 @@ function calculateTest() {
   if (percent < 0) percent = 0;
   if (percent > 100) percent = 100;
 
-  const consumedWh = battery * (1 - percent / 100);
-  const efficiencyWhPerKg = weight > 0 ? (consumedWh / weight) : Infinity;
-  const score = (efficiencyWhPerKg > 0 && Number.isFinite(efficiencyWhPerKg))
-    ? 10 / efficiencyWhPerKg
-    : 0;
+  const calc = computeCoyoteScore(battery, weight, percent);
+  if (!calc) {
+    alert("Errore nel calcolo (dati non validi).");
+    return;
+  }
+
+  const consumedWh = calc.consumedWh;
+  const efficiencyWhPerKg = calc.efficiencyWhPerKg;
+  const score = calc.score;
+  percent = calc.percent;
 
   const li = testRankingList.querySelector("li");
   if (!li) return;
@@ -2556,7 +2588,7 @@ function calculateTest() {
   
 
   if (percentLabel) percentLabel.textContent = Math.round(percent) + "%";
-  if (scoreElem) scoreElem.textContent = score.toFixed(1);
+  if (scoreElem) scoreElem.textContent = score.toFixed(2);
   if (medalElem) medalElem.textContent = "🏁";
   // Update external pills
   const outWh = document.getElementById("pill-out-wh");
