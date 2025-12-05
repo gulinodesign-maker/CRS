@@ -300,7 +300,9 @@ body {
     font-size:20px;
     white-space:nowrap;
     line-height:24px;
-  }
+  
+    margin-top: 3px;
+}
 
   /* BATTERIA */
   .battery {
@@ -673,6 +675,11 @@ body {
     color:#111827;
     border-color:var(--coyote-yellow);
   }
+  .test-tab-icon {
+    display:block;
+    font-size:24px;
+    line-height:1;
+  }
   .test-tab-contents { margin-top:4px; }
   .test-tab-content { display:none; }
   .test-tab-content.active { display:block; }
@@ -713,7 +720,7 @@ body {
   }
   .test-data-pill {
     flex:1;
-    padding:4px 8px;
+    padding: 16px 8px;
     border-radius:999px;
     text-align:center;
     background:#020617;
@@ -988,9 +995,15 @@ body {
 
 <div id="test-inputs">
       <div class="test-tabs">
-        <button type="button" class="test-tab active" data-tab="wh">Wh batteria</button>
-        <button type="button" class="test-tab" data-tab="kg">Peso biker (kg)</button>
-        <button type="button" class="test-tab" data-tab="percent">Carica residua (%)</button>
+        <button type="button" class="test-tab active" data-tab="wh" aria-label="Wh batteria">
+          <span class="test-tab-icon">🔋</span>
+        </button>
+        <button type="button" class="test-tab" data-tab="kg" aria-label="Peso biker (kg)">
+          <span class="test-tab-icon">🚴‍♂️</span>
+        </button>
+        <button type="button" class="test-tab" data-tab="percent" aria-label="Carica residua (%)">
+          <span class="test-tab-icon">%</span>
+        </button>
       </div>
       <div class="test-tab-contents">
         <div class="test-tab-content active" data-tab="wh">
@@ -1024,7 +1037,7 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "2.43";
+const APP_VERSION = "2.46";
 const API_URL = "https://script.google.com/macros/s/AKfycbypSAJ04y8QGmNy4Yj-OnZytC9j_rFw7aBfh6hJ7iuxy_LJVAvok_dKPxy44ZWpCNq0/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
