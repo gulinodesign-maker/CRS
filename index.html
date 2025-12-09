@@ -531,6 +531,151 @@ body {
     font-size:20px;
     margin-bottom:4px;
   }
+
+  /* LISTA BIKERS (vista database semplificata) */
+  .biker-list {
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:8px;
+  }
+  .biker-list-empty {
+    font-size:14px;
+    color:#6b7280;
+    text-align:center;
+    margin-top:8px;
+  }
+  .biker-list-item {
+    width:100%;
+    text-align:left;
+    padding:10px 12px;
+    border-radius:999px;
+    border:1px solid #e5e7eb;
+    background:#f9fafb;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    transition:background 0.12s ease, box-shadow 0.12s ease, transform 0.06s ease;
+  }
+  .biker-list-item span.biker-initial {
+    width:26px;
+    height:26px;
+    border-radius:999px;
+    background:#111827;
+    color:#f9fafb;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:14px;
+    font-weight:700;
+  }
+  .biker-list-item:hover {
+    background:#e5e7eb;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+  }
+  .biker-list-item:active {
+    transform:scale(0.98);
+    box-shadow:none;
+  }
+
+  .db-buttons-inline {
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    margin-top:14px;
+  }
+
+  /* MODALE GESTIONE BIKER */
+  #biker-modal-overlay {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.7);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:10001;
+  }
+  .biker-modal {
+    width:100%;
+    max-width:360px;
+    background:#f9fafb;
+    border-radius:20px;
+    padding:18px 16px 14px;
+    box-shadow:0 14px 30px rgba(0,0,0,0.45);
+  }
+  .biker-modal-title {
+    font-size:18px;
+    font-weight:800;
+    margin:0 0 4px;
+    color:#111827;
+    text-align:center;
+  }
+  .biker-modal-subtitle {
+    font-size:12px;
+    color:#6b7280;
+    text-align:center;
+    margin:0 0 10px;
+  }
+  .biker-modal-field {
+    margin-bottom:8px;
+  }
+  .biker-modal-field label {
+    display:block;
+    font-size:12px;
+    color:#374151;
+    margin-bottom:2px;
+  }
+  .biker-modal-field input {
+    width:100%;
+    box-sizing:border-box;
+    padding:8px;
+    border-radius:10px;
+    border:1px solid #d1d5db;
+    font-size:16px;
+  }
+  .biker-modal-actions {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    margin-top:10px;
+  }
+  .biker-modal-actions-left {
+    display:flex;
+    gap:8px;
+  }
+  .biker-modal-btn {
+    flex:1;
+    padding:9px 10px;
+    border-radius:999px;
+    border:none;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    transition:transform 0.06s ease, box-shadow 0.12s ease, background 0.12s ease;
+  }
+  .biker-modal-btn:active {
+    transform:scale(0.97);
+    box-shadow:none;
+  }
+  .biker-modal-btn-primary {
+    background:var(--coyote-yellow);
+    color:#111827;
+    box-shadow:0 4px 10px rgba(253,224,71,0.4);
+  }
+  .biker-modal-btn-secondary {
+    background:#e5e7eb;
+    color:#111827;
+  }
+  .biker-modal-btn-danger {
+    background:#fee2e2;
+    color:#b91c1c;
+  }
+
   /* STILE BARRA DATA NELLA PAGINA GARA */
   #race-date-input {
   -webkit-appearance: none;
@@ -1115,6 +1260,40 @@ body {
   </div>
 
   <div id="db-container"></div>
+
+  <!-- Modale gestione singolo biker -->
+  <div id="biker-modal-overlay">
+    <div class="biker-modal" role="dialog" aria-modal="true" aria-labelledby="biker-modal-title">
+      <h2 id="biker-modal-title" class="biker-modal-title">Nuovo biker</h2>
+      <p class="biker-modal-subtitle">Inserisci o modifica i dati del biker.</p>
+
+      <div class="biker-modal-field">
+        <label for="biker-modal-name">Nome</label>
+        <input id="biker-modal-name" type="text" placeholder="Nome biker">
+      </div>
+      <div class="biker-modal-field">
+        <label for="biker-modal-battery">Batteria (Wh)</label>
+        <input id="biker-modal-battery" type="number" step="1" placeholder="Es. 500">
+      </div>
+      <div class="biker-modal-field">
+        <label for="biker-modal-rider">Peso biker (kg)</label>
+        <input id="biker-modal-rider" type="number" step="0.5" placeholder="Es. 65">
+      </div>
+      <div class="biker-modal-field">
+        <label for="biker-modal-bike">Peso bici (kg)</label>
+        <input id="biker-modal-bike" type="number" step="0.5" placeholder="Es. 15">
+      </div>
+
+      <div class="biker-modal-actions">
+        <div class="biker-modal-actions-left">
+          <button id="biker-modal-cancel" type="button" class="biker-modal-btn biker-modal-btn-secondary">Annulla</button>
+          <button id="biker-modal-delete" type="button" class="biker-modal-btn biker-modal-btn-danger">Elimina</button>
+        </div>
+        <button id="biker-modal-save" type="button" class="biker-modal-btn biker-modal-btn-primary">Salva</button>
+      </div>
+    </div>
+  </div>
+
   <div id="select-container"></div>
   <div id="players-container"></div>
 
@@ -1351,6 +1530,17 @@ function hideBikersLoading() {
 
 /* REFERENCES */
 const dbContainer = document.getElementById("db-container");
+
+const bikerModalOverlay = document.getElementById("biker-modal-overlay");
+const bikerModalTitle   = document.getElementById("biker-modal-title");
+const bikerModalName    = document.getElementById("biker-modal-name");
+const bikerModalBattery = document.getElementById("biker-modal-battery");
+const bikerModalRider   = document.getElementById("biker-modal-rider");
+const bikerModalBike    = document.getElementById("biker-modal-bike");
+const bikerModalBtnSave   = document.getElementById("biker-modal-save");
+const bikerModalBtnDelete = document.getElementById("biker-modal-delete");
+const bikerModalBtnCancel = document.getElementById("biker-modal-cancel");
+
 const selectContainer = document.getElementById("select-container");
 const playersContainer = document.getElementById("players-container");
 const raceInfoContainer = document.getElementById("race-info-container");
@@ -1764,26 +1954,54 @@ async function renderDBView() {
     showAuthOverlay("Effettua il login per gestire i bikers.");
     return;
   }
+
   dbContainer.innerHTML = "";
+
   const bikers = await loadBikers(true);
-  bikers.forEach(createDBCard);
+
+  if (!bikers || bikers.length === 0) {
+    const emptyMsg = document.createElement("div");
+    emptyMsg.className = "biker-list-empty";
+    emptyMsg.textContent = "Nessun biker presente. Premi \"Nuovo biker\" per aggiungerne uno.";
+    dbContainer.appendChild(emptyMsg);
+  } else {
+    const list = document.createElement("div");
+    list.className = "biker-list";
+
+    bikers.forEach((biker, index) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "biker-list-item";
+
+      const initialSpan = document.createElement("span");
+      initialSpan.className = "biker-initial";
+      const initial = (biker.name || "").trim().charAt(0) || "?";
+      initialSpan.textContent = initial.toUpperCase();
+
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "biker-name-label";
+      nameSpan.textContent = biker.name || ("Biker " + (index + 1));
+
+      btn.appendChild(initialSpan);
+      btn.appendChild(nameSpan);
+
+      btn.onclick = () => openBikerModal(index);
+
+      list.appendChild(btn);
+    });
+
+    dbContainer.appendChild(list);
+  }
 
   const row = document.createElement("div");
   row.className = "db-buttons-inline";
-  row.id = "db-buttons-inline";
 
   const add = document.createElement("button");
   add.className = "btn-small btn-db-add";
-  add.textContent = "Aggiungi Biker";
-  add.onclick = () => createDBCard(null);
-
-  const save = document.createElement("button");
-  save.className = "btn-small btn-db-save";
-  save.textContent = "Salva Database";
-  save.onclick = () => saveDatabaseFromView();
+  add.textContent = "Nuovo biker";
+  add.onclick = () => openBikerModal(null);
 
   row.appendChild(add);
-  row.appendChild(save);
   dbContainer.appendChild(row);
 }
 
@@ -1851,6 +2069,94 @@ async function saveDatabaseFromView() {
   await saveBikersToServer(bikers);
   await renderSelectView();
   showView("select");
+}
+let currentBikerIndex = null;
+
+function openBikerModal(index) {
+  const bikers = window.__bikersCache || [];
+  currentBikerIndex = (typeof index === "number") ? index : null;
+
+  if (!bikerModalOverlay) return;
+
+  if (currentBikerIndex === null) {
+    bikerModalTitle.textContent = "Nuovo biker";
+    bikerModalName.value = "";
+    bikerModalBattery.value = "";
+    bikerModalRider.value = "65";
+    bikerModalBike.value = "15";
+    bikerModalBtnDelete.style.display = "none";
+  } else {
+    const b = bikers[currentBikerIndex];
+    bikerModalTitle.textContent = "Modifica biker";
+    bikerModalName.value = (b && b.name) ? b.name : "";
+    bikerModalBattery.value = (b && b.batteryWh != null) ? b.batteryWh : "";
+    bikerModalRider.value = (b && b.riderKg != null) ? b.riderKg : "";
+    bikerModalBike.value = (b && b.bikeKg != null) ? b.bikeKg : "";
+    bikerModalBtnDelete.style.display = "inline-block";
+  }
+
+  bikerModalOverlay.style.display = "flex";
+}
+
+function closeBikerModal() {
+  if (bikerModalOverlay) bikerModalOverlay.style.display = "none";
+  currentBikerIndex = null;
+}
+
+async function handleBikerModalSave() {
+  const name = bikerModalName.value.trim();
+  const batteryVal = parseFloat(bikerModalBattery.value);
+  const riderVal = parseFloat(bikerModalRider.value);
+  const bikeVal  = parseFloat(bikerModalBike.value);
+
+  if (!name ||
+      !Number.isFinite(batteryVal) || batteryVal <= 0 ||
+      !Number.isFinite(riderVal)   || riderVal   <= 0 ||
+      !Number.isFinite(bikeVal)    || bikeVal    <= 0) {
+    alert("Inserisci nome, Wh, peso biker e peso bici validi.");
+    return;
+  }
+
+  const bikers = Array.isArray(window.__bikersCache) ? [...window.__bikersCache] : [];
+
+  const bikerData = {
+    name,
+    batteryWh: batteryVal,
+    riderKg: riderVal,
+    bikeKg: bikeVal
+  };
+
+  if (currentBikerIndex === null) {
+    if (bikers.length >= MAX_BIKERS) {
+      alert("Hai raggiunto il numero massimo di biker (" + MAX_BIKERS + ").");
+      return;
+    }
+    bikers.push(bikerData);
+  } else {
+    bikers[currentBikerIndex] = bikerData;
+  }
+
+  await saveBikersToServer(bikers);
+  closeBikerModal();
+  await renderDBView();
+}
+
+async function handleBikerModalDelete() {
+  if (currentBikerIndex === null) {
+    closeBikerModal();
+    return;
+  }
+
+  if (!confirm("Eliminare questo biker dal database?")) return;
+
+  const bikers = Array.isArray(window.__bikersCache) ? [...window.__bikersCache] : [];
+  if (currentBikerIndex >= 0 && currentBikerIndex < bikers.length) {
+    bikers.splice(currentBikerIndex, 1);
+  }
+
+  await saveBikersToServer(bikers);
+  closeBikerModal();
+  await renderDBView();
 }
 
 /* SELECT VIEW */
@@ -2187,6 +2493,12 @@ if (homeBtnBikers) {
     }
   };
 }
+
+
+/* PULSANTI MODALE BIKER */
+if (bikerModalBtnSave)   bikerModalBtnSave.onclick   = () => handleBikerModalSave();
+if (bikerModalBtnDelete) bikerModalBtnDelete.onclick = () => handleBikerModalDelete();
+if (bikerModalBtnCancel) bikerModalBtnCancel.onclick = () => closeBikerModal();
 
 /* MAIN BUTTONS */
 btnDb.onclick = () => { renderDBView(); showView("db"); };
