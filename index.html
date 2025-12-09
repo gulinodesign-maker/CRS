@@ -2287,7 +2287,7 @@ function collectResultsFromPercentView() {
     if (percent > 100) percent = 100;
 
     const totalWeight = riderW + bikeW;
-    const calc = computeCoyoteScore(battery, riderWeight, bikeWeight, percent);
+    const calc = computeCoyoteScore(battery, riderW, bikeW, percent);
     if (!calc) return null;
 
     return { name, percent: calc.percent, score: calc.score };
