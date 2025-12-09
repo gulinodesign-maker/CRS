@@ -1438,8 +1438,8 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "3.14";
-const BUILD_DATE = "2025-12-09-3.14";
+const APP_VERSION = "3.15";
+const BUILD_DATE = "2025-12-09-3.15";
 const API_URL = "https://script.google.com/macros/s/AKfycbyIJtsBxN25dbU20AicBxfGa7sdAizTJn3f1tFSSsiA9c1M1Ce1q5kUcXSmAQfd0UR3/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
@@ -1681,7 +1681,7 @@ function updateHomeAccountPill() {
 }
 
 if (versionLabel) {
-  versionLabel.textContent = "Versione " + APP_VERSION + " · Build " + BUILD_DATE;
+  versionLabel.textContent = "Versione " + APP_VERSION;
 }
 
 updateAccountBadge();
@@ -2644,14 +2644,14 @@ function renderPerformanceBars(entries) {
     const val = document.createElement("div");
     val.textContent = total.toFixed(2);
     val.style.fontSize = "12px";
-    val.style.color = "#dc2626";
+    val.style.color = "#166534";
     val.style.fontWeight = "700";
     val.style.marginBottom = "2px";
 
     const inner = document.createElement("div");
     inner.style.width = "100%";
     inner.style.borderRadius = "6px 6px 0 0";
-    inner.style.background = "linear-gradient(to top, #CC0000, #F97316)";
+    inner.style.background = "linear-gradient(to top, #16A34A, #4ADE80)";
     inner.style.height = "0%";
 
     const label = document.createElement("div");
@@ -3072,7 +3072,7 @@ function renderPerformanceGraph(races) {
     const bar = document.createElement("div");
     bar.style.height = (150 * avg / maxVal) + "px";
     bar.style.width = "20px";
-    bar.style.background = "linear-gradient(to top, #CC0000, #F97316)";
+    bar.style.background = "linear-gradient(to top, #16A34A, #4ADE80)";
     bar.style.borderRadius = "4px";
     bar.title = name + ": " + avg.toFixed(2);
 
