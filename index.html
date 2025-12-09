@@ -1438,8 +1438,8 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "3.12";
-const BUILD_DATE = "2025-12-09";
+const APP_VERSION = "3.13";
+const BUILD_DATE = "2025-12-09-3.13";
 const API_URL = "https://script.google.com/macros/s/AKfycbyIJtsBxN25dbU20AicBxfGa7sdAizTJn3f1tFSSsiA9c1M1Ce1q5kUcXSmAQfd0UR3/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
@@ -1455,46 +1455,34 @@ const BASE_BIKE_WEIGHT_KG = 15;
 const BASE_TOTAL_WEIGHT_KG = BASE_RIDER_WEIGHT_KG + BASE_BIKE_WEIGHT_KG;
 
 
-function computeCoyoteScore(batteryWh, riderWeightKg, bikeWeightKg, percentRemaining) {
+function computeCoyoteScore(batteryWh, totalWeightKg, percentRemaining) {
   const battery = parseFloat(batteryWh);
-  const riderWeight = parseFloat(riderWeightKg);
-  const bikeWeight = parseFloat(bikeWeightKg);
+  const totalWeight = parseFloat(totalWeightKg);
   let percent = parseFloat(percentRemaining);
 
   if (!Number.isFinite(battery) || battery <= 0) return null;
-  if (!Number.isFinite(riderWeight) || riderWeight <= 0) return null;
-  if (!Number.isFinite(bikeWeight) || bikeWeight <= 0) return null;
+  if (!Number.isFinite(totalWeight) || totalWeight <= 0) return null;
   if (!Number.isFinite(percent)) return null;
 
   if (percent < 0) percent = 0;
   if (percent > 100) percent = 100;
-
-  const totalWeight = riderWeight + bikeWeight;
 
   // Energia consumata in gara
   const consumedWh = battery * (1 - percent / 100);
   // Energia residua in batteria (guida il punteggio)
   const remainingWh = battery * (percent / 100);
 
-  // Deviazione di peso rispetto allo standard (65 + 15 = 80 kg)
-  // (peso bici biker - peso bici standard) + (peso biker - peso biker standard)
-  const bikeDelta = bikeWeight - BASE_BIKE_WEIGHT_KG;
-  const riderDelta = riderWeight - BASE_RIDER_WEIGHT_KG;
-  const weightDelta = bikeDelta + riderDelta;
+  // Formula C:
+  // Fattore peso = Peso_totale / Peso_standard (80 kg)
+  // A parità di Wh residui:
+  // - più peso -> fattore > 1 -> punteggio maggiore
+  // - meno peso -> fattore < 1 -> punteggio minore
+  const weightFactor = totalWeight / BASE_TOTAL_WEIGHT_KG;
 
-  // Fattore di correzione:
-  // - se il biker+bici è più pesante dello standard → weightFactor > 1 (punteggio aumenta a parità di Wh)
-  // - se è più leggero → weightFactor < 1
-  let weightFactor = 1 + (weightDelta / BASE_TOTAL_WEIGHT_KG);
-  if (weightFactor < 0.1) weightFactor = 0.1; // clamp minimo di sicurezza
-
-  // Efficienza energia per kg reale (usiamo ancora i Wh consumati
-  // per il pannello di test, solo come dato informativo)
+  // Efficienza energia per kg reale (dato informativo per il pannello test)
   const efficiencyWhPerKg = totalWeight > 0 ? (consumedWh / totalWeight) : Infinity;
 
-  // Nuova formula Coyote Score:
-  // punteggio proporzionale all'energia residua, corretto per il peso relativo,
-  // e diviso per 100 come da specifica.
+  // Coyote Score: energia residua corretta per il fattore peso
   const rawScore = remainingWh * weightFactor;
   const score = rawScore / 100;
 
@@ -2287,7 +2275,7 @@ function collectResultsFromPercentView() {
     if (percent > 100) percent = 100;
 
     const totalWeight = riderW + bikeW;
-    const calc = computeCoyoteScore(battery, riderW, bikeW, percent);
+    const calc = computeCoyoteScore(battery, totalWeight, percent);
     if (!calc) return null;
 
     return { name, percent: calc.percent, score: calc.score };
@@ -3246,7 +3234,7 @@ function calculateTest() {
   if (percent < 0) percent = 0;
   if (percent > 100) percent = 100;
 
-  const calc = computeCoyoteScore(battery, riderWeight, bikeWeight, percent);
+  const calc = computeCoyoteScore(battery, totalWeight, percent);
   if (!calc) {
     alert("Errore nel calcolo (dati non validi).");
     return;
