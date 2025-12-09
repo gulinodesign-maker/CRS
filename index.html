@@ -1438,8 +1438,8 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "3.13";
-const BUILD_DATE = "2025-12-09-3.13";
+const APP_VERSION = "3.14";
+const BUILD_DATE = "2025-12-09-3.14";
 const API_URL = "https://script.google.com/macros/s/AKfycbyIJtsBxN25dbU20AicBxfGa7sdAizTJn3f1tFSSsiA9c1M1Ce1q5kUcXSmAQfd0UR3/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
@@ -1467,24 +1467,23 @@ function computeCoyoteScore(batteryWh, totalWeightKg, percentRemaining) {
   if (percent < 0) percent = 0;
   if (percent > 100) percent = 100;
 
-  // Energia consumata in gara
-  const consumedWh = battery * (1 - percent / 100);
-  // Energia residua in batteria (guida il punteggio)
-  const remainingWh = battery * (percent / 100);
+  // 1) Wh consumati (NON rimanenti)
+  const consumedWh  = battery * (1 - percent / 100);
+  const remainingWh = battery * (percent / 100); // solo informativo
 
-  // Formula C:
-  // Fattore peso = Peso_totale / Peso_standard (80 kg)
-  // A parità di Wh residui:
-  // - più peso -> fattore > 1 -> punteggio maggiore
-  // - meno peso -> fattore < 1 -> punteggio minore
-  const weightFactor = totalWeight / BASE_TOTAL_WEIGHT_KG;
+  // se praticamente non ha consumato, evitiamo numeri assurdi
+  if (consumedWh <= 0) return null;
 
-  // Efficienza energia per kg reale (dato informativo per il pannello test)
+  // 2) Normalizzazione al peso standard (80 kg)
+  // Wh_cons_norm = Wh_cons * (Peso_std / Peso_tot)
+  const normalizedConsumedWh = consumedWh * (BASE_TOTAL_WEIGHT_KG / totalWeight);
+
+  // 3) Efficienza Wh/kg reale (dato per pannello Test)
   const efficiencyWhPerKg = totalWeight > 0 ? (consumedWh / totalWeight) : Infinity;
 
-  // Coyote Score: energia residua corretta per il fattore peso
-  const rawScore = remainingWh * weightFactor;
-  const score = rawScore / 100;
+  // 4) Coyote Score: più sei efficiente (meno Wh consumati normalizzati), più il punteggio sale
+  const SCORE_SCALE = 1000; // fattore di scala per numeri "comodi"
+  const score = SCORE_SCALE / normalizedConsumedWh;
 
   if (!Number.isFinite(score)) return null;
 
