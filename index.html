@@ -1251,7 +1251,7 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "2.59";
+const APP_VERSION = "2.60";
 const BUILD_DATE = "2025-12-09";
 const API_URL = "https://script.google.com/macros/s/AKfycbypSAJ04y8QGmNy4Yj-OnZytC9j_rFw7aBfh6hJ7iuxy_LJVAvok_dKPxy44ZWpCNq0/exec";
 
@@ -1469,7 +1469,7 @@ function updateHomeAccountPill() {
 }
 
 if (versionLabel) {
-  versionLabel.textContent = "Versione " + APP_VERSION;
+  versionLabel.textContent = "Versione " + APP_VERSION + " (build " + BUILD_DATE + ")";
 }
 
 updateAccountBadge();
@@ -2102,6 +2102,27 @@ if (document.getElementById("home-btn-account")) {
 
 const homeAccountPillEl = document.getElementById("home-account-pill");
 if (homeAccountPillEl) {
+  const handleAccountClick = () => {
+    const uid = getCurrentUserId();
+    const username = getCurrentUsername();
+
+    // Se NON loggato → apri login
+    if (!uid) {
+      showAuthOverlay();
+      return;
+    }
+
+    // Se loggato → chiedi logout
+    const confirmLogout = confirm("Sei già connesso come " + (username ? ("@" + username) : uid) + ". Vuoi eseguire il logout?");
+    if (confirmLogout) {
+      clearCurrentUser();            // rimuove userId e username
+      alert("Logout eseguito.");     // feedback
+      showAuthOverlay();             // torna alla schermata di login
+    }
+  };
+
+  homeAccountPillEl.onclick = handleAccountClick;
+
   homeAccountPillEl.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
