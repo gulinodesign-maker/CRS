@@ -1202,9 +1202,10 @@ body {
 
     
 <div id="test-data-pills-container" style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;justify-content:center;">
-  <div class="test-data-pill" id="pill-out-wh">Wh: --</div>
-  <div class="test-data-pill" id="pill-out-kg">Kg: --</div>
-  <div class="test-data-pill" id="pill-out-percent">%: --</div>
+  <div class="test-data-pill" id="pill-out-wh">--</div>
+  <div class="test-data-pill" id="pill-out-kg">--</div>
+  <div class="test-data-pill" id="pill-out-bikekg">--</div>
+  <div class="test-data-pill" id="pill-out-percent">--</div>
 </div>
 
 <div id="test-inputs">
@@ -1212,8 +1213,11 @@ body {
         <button type="button" class="test-tab active" data-tab="wh" aria-label="Wh batteria">
           <span class="test-tab-icon">🔋</span>
         </button>
-        <button type="button" class="test-tab" data-tab="kg" aria-label="Peso biker (kg)">
+        <button type="button" class="test-tab" data-tab="riderkg" aria-label="Peso biker (kg)">
           <span class="test-tab-icon">🚴‍♂️</span>
+        </button>
+        <button type="button" class="test-tab" data-tab="bikekg" aria-label="Peso bici (kg)">
+          <span class="test-tab-icon">🚲</span>
         </button>
         <button type="button" class="test-tab" data-tab="percent" aria-label="Carica residua (%)">
           <span class="test-tab-icon">%</span>
@@ -1224,9 +1228,13 @@ body {
           <input id="test-battery-input" type="number" step="1"
                  placeholder="Inserisci capacità batteria in Wh (es. 500)">
         </div>
-        <div class="test-tab-content" data-tab="kg">
+        <div class="test-tab-content" data-tab="riderkg">
           <input id="test-weight-input" type="number" step="0.5"
-                 placeholder="Inserisci peso biker in kg (es. 75)">
+                 placeholder="Inserisci peso biker in kg (es. 65)">
+        </div>
+        <div class="test-tab-content" data-tab="bikekg">
+          <input id="test-bike-weight-input" type="number" step="0.5"
+                 placeholder="Inserisci peso bici in kg (es. 15)">
         </div>
         <div class="test-tab-content" data-tab="percent">
           <input id="test-percent-input" type="number" step="1" min="0" max="100"
@@ -1251,9 +1259,9 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "2.60";
+const APP_VERSION = "3.8";
 const BUILD_DATE = "2025-12-09";
-const API_URL = "https://script.google.com/macros/s/AKfycbypSAJ04y8QGmNy4Yj-OnZytC9j_rFw7aBfh6hJ7iuxy_LJVAvok_dKPxy44ZWpCNq0/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyIJtsBxN25dbU20AicBxfGa7sdAizTJn3f1tFSSsiA9c1M1Ce1q5kUcXSmAQfd0UR3/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
 const USERNAME_STORAGE_KEY = "crs_username_v2";
@@ -1263,31 +1271,45 @@ let MAX_BIKERS = 20;
 
 
 // ===== Nuovo algoritmo CRS Score basato su peso relativo =====
-const BASE_WEIGHT_KG = 65;
-const WEIGHT_DELTA_FACTOR = 0.5;
+const BASE_RIDER_WEIGHT_KG = 65;
+const BASE_BIKE_WEIGHT_KG = 15;
+const BASE_TOTAL_WEIGHT_KG = BASE_RIDER_WEIGHT_KG + BASE_BIKE_WEIGHT_KG;
 
-function computeCoyoteScore(batteryWh, weightKg, percentRemaining) {
+
+function computeCoyoteScore(batteryWh, totalWeightKg, percentRemaining) {
   const battery = parseFloat(batteryWh);
-  const weight  = parseFloat(weightKg);
-  let percent   = parseFloat(percentRemaining);
+  const totalWeight = parseFloat(totalWeightKg);
+  let percent = parseFloat(percentRemaining);
 
   if (!Number.isFinite(battery) || battery <= 0) return null;
-  if (!Number.isFinite(weight)  || weight  <= 0) return null;
+  if (!Number.isFinite(totalWeight) || totalWeight <= 0) return null;
   if (!Number.isFinite(percent)) return null;
 
   if (percent < 0) percent = 0;
   if (percent > 100) percent = 100;
 
+  // Energia consumata in gara
   const consumedWh = battery * (1 - percent / 100);
-  const effectiveWeight = BASE_WEIGHT_KG + (weight - BASE_WEIGHT_KG) * WEIGHT_DELTA_FACTOR;
-  const efficiencyWhPerKg = effectiveWeight > 0 ? (consumedWh / effectiveWeight) : Infinity;
-  const score = (efficiencyWhPerKg > 0 && Number.isFinite(efficiencyWhPerKg))
-    ? 10 / efficiencyWhPerKg
-    : 0;
+  // Energia residua in batteria (guida il punteggio)
+  const remainingWh = battery * (percent / 100);
+
+  // Fattore di correzione per il peso totale (rider + bici)
+  // rispetto allo standard (65 + 15 = 80 kg)
+  const weightFactor = totalWeight / BASE_TOTAL_WEIGHT_KG;
+
+  // Efficienza energia per kg reale (usiamo ancora i Wh consumati
+  // per il pannello di test, solo come dato informativo)
+  const efficiencyWhPerKg = totalWeight > 0 ? (consumedWh / totalWeight) : Infinity;
+
+  // Nuova formula Coyote Score:
+  // punteggio proporzionale all'energia residua, corretto per il peso totale,
+  // e diviso per 100 come da specifica.
+  const rawScore = remainingWh * weightFactor;
+  const score = rawScore / 100;
 
   if (!Number.isFinite(score)) return null;
 
-  return { percent, consumedWh, effectiveWeight, efficiencyWhPerKg, score };
+  return { percent, consumedWh, remainingWh, efficiencyWhPerKg, score };
 }
 // ===== Fine nuovo algoritmo =====
 
@@ -1379,6 +1401,7 @@ const testView = document.getElementById("test-view");
 const testRankingList = document.getElementById("test-ranking-list");
 const testBatteryInput = document.getElementById("test-battery-input");
 const testWeightInput = document.getElementById("test-weight-input");
+const testBikeWeightInput = document.getElementById("test-bike-weight-input");
 const testPercentInput = document.getElementById("test-percent-input");
 const testCalcBtn = document.getElementById("test-calc-btn");
 const testResetBtn = document.getElementById("test-reset-btn");
@@ -1469,7 +1492,7 @@ function updateHomeAccountPill() {
 }
 
 if (versionLabel) {
-  versionLabel.textContent = "Versione " + APP_VERSION + " (build " + BUILD_DATE + ")";
+  versionLabel.textContent = "Versione " + APP_VERSION;
 }
 
 updateAccountBadge();
@@ -1768,9 +1791,11 @@ function createDBCard(b) {
   const card = document.createElement("div");
   card.className = "player-card";
 
-  const name    = b ? (b.name    ?? "") : "";
-  const battery = b ? (b.battery ?? "") : "";
-  const weight  = b ? (b.weight  ?? "") : "";
+  // Compatibilità: se arrivano dati vecchi con solo "weight", lo considero come peso biker
+  const name        = b ? (b.name        ?? "") : "";
+  const batteryWh   = b ? (b.batteryWh   ?? b.battery ?? "") : "";
+  const riderWeight = b ? (b.riderKg     ?? b.weight  ?? "") : "";
+  const bikeWeight  = b ? (b.bikeKg      ?? "") : "";
 
   card.innerHTML = `
     <div class="player-title">
@@ -1778,8 +1803,9 @@ function createDBCard(b) {
       <button class="delete-biker">✕</button>
     </div>
     <input class="name-input" placeholder="Nome" value="${name}">
-    <input class="battery-input" type="number" placeholder="Wh" value="${battery}">
-    <input class="weight-input" type="number" placeholder="Kg" value="${weight}">
+    <input class="battery-input" type="number" placeholder="Wh batteria" value="${batteryWh}">
+    <input class="rider-weight-input" type="number" placeholder="Peso biker (kg)" value="${riderWeight}">
+    <input class="bike-weight-input" type="number" placeholder="Peso bici (kg)" value="${bikeWeight}">
   `;
 
   card.querySelector(".delete-biker").onclick = () => card.remove();
@@ -1792,21 +1818,28 @@ function createDBCard(b) {
 async function saveDatabaseFromView() {
   const cards = [...dbContainer.getElementsByClassName("player-card")];
   const bikers = cards.map(c => {
-    const nameVal = c.querySelector(".name-input").value.trim();
-    const batteryVal = parseFloat(c.querySelector(".battery-input").value);
-    const weightVal  = parseFloat(c.querySelector(".weight-input").value);
+    const nameVal        = c.querySelector(".name-input").value.trim();
+    const batteryVal     = parseFloat(c.querySelector(".battery-input").value);
+    const riderWeightVal = parseFloat(c.querySelector(".rider-weight-input").value);
+    const bikeWeightVal  = parseFloat(c.querySelector(".bike-weight-input").value);
 
-    const validName    = !!nameVal;
-    const validBattery = Number.isFinite(batteryVal) && batteryVal > 0;
-    const validWeight  = Number.isFinite(weightVal)  && weightVal > 0;
+    const validName        = !!nameVal;
+    const validBattery     = Number.isFinite(batteryVal)     && batteryVal > 0;
+    const validRiderWeight = Number.isFinite(riderWeightVal) && riderWeightVal > 0;
+    const validBikeWeight  = Number.isFinite(bikeWeightVal)  && bikeWeightVal > 0;
 
-    if (!validName || !validBattery || !validWeight) return null;
+    if (!validName || !validBattery || !validRiderWeight || !validBikeWeight) return null;
 
-    return { name: nameVal, battery: batteryVal, weight: weightVal };
+    return {
+      name:       nameVal,
+      batteryWh:  batteryVal,
+      riderKg:    riderWeightVal,
+      bikeKg:     bikeWeightVal
+    };
   }).filter(Boolean);
 
   if (bikers.length === 0) {
-    alert("Inserisci almeno un biker valido (nome, Wh, Kg).");
+    alert("Inserisci almeno un biker valido (nome, Wh, peso biker, peso bici).");
     return;
   }
 
@@ -1843,12 +1876,16 @@ function createParticipantRow(b, i) {
     ? b.name.trim().charAt(0).toUpperCase()
     : "?";
 
+  const batteryWh   = b.batteryWh ?? b.battery ?? "";
+  const riderWeight = b.riderKg   ?? b.weight  ?? "";
+  const bikeWeight  = b.bikeKg    ?? "";
+
   row.innerHTML = `
     <div class="participant-main">
       <div class="participant-avatar">${initial}</div>
       <div class="participant-text">
         <span class="participant-name">${b.name}</span>
-        <span class="participant-meta">${b.battery} Wh · ${b.weight} kg</span>
+        <span class="participant-meta">${batteryWh} Wh · ${riderWeight} kg biker · ${bikeWeight} kg bici</span>
       </div>
     </div>
   `;
@@ -1895,13 +1932,18 @@ async function buildGaraFromSelection() {
 }
 
 function createGaraCard(b) {
+  const batteryWh   = b.batteryWh ?? b.battery ?? "";
+  const riderWeight = b.riderKg   ?? b.weight  ?? "";
+  const bikeWeight  = b.bikeKg    ?? "";
+
   const c = document.createElement("div");
   c.className = "player-card";
   c.innerHTML = `
     <div class="player-title"><span>${b.name}</span></div>
     <input type="hidden" class="name-input" value="${b.name}">
-    <input type="hidden" class="battery-input" value="${b.battery}">
-    <input type="hidden" class="weight-input" value="${b.weight}">
+    <input type="hidden" class="battery-input" value="${batteryWh}">
+    <input type="hidden" class="rider-weight-input" value="${riderWeight}">
+    <input type="hidden" class="bike-weight-input" value="${bikeWeight}">
     <input type="number" class="percent-input" placeholder="% residua" min="0" max="100">
   `;
   playersContainer.appendChild(c);
@@ -1911,20 +1953,23 @@ function createGaraCard(b) {
 function collectResultsFromPercentView() {
   const cards = [...playersContainer.getElementsByClassName("player-card")];
   const results = cards.map(c => {
-    const name = c.querySelector(".name-input").value.trim();
+    const name    = c.querySelector(".name-input").value.trim();
     const battery = parseFloat(c.querySelector(".battery-input").value);
-    const weight  = parseFloat(c.querySelector(".weight-input").value);
+    const riderW  = parseFloat(c.querySelector(".rider-weight-input").value);
+    const bikeW   = parseFloat(c.querySelector(".bike-weight-input").value);
     let percent   = parseFloat(c.querySelector(".percent-input").value);
 
     if (!name) return null;
     if (!Number.isFinite(battery) || battery <= 0) return null;
-    if (!Number.isFinite(weight)  || weight  <= 0) return null;
+    if (!Number.isFinite(riderW) || riderW  <= 0) return null;
+    if (!Number.isFinite(bikeW)  || bikeW   <= 0) return null;
     if (!Number.isFinite(percent)) return null;
 
     if (percent < 0) percent = 0;
     if (percent > 100) percent = 100;
 
-    const calc = computeCoyoteScore(battery, weight, percent);
+    const totalWeight = riderW + bikeW;
+    const calc = computeCoyoteScore(battery, totalWeight, percent);
     if (!calc) return null;
 
     return { name, percent: calc.percent, score: calc.score };
@@ -2102,7 +2147,8 @@ if (document.getElementById("home-btn-account")) {
 
 const homeAccountPillEl = document.getElementById("home-account-pill");
 if (homeAccountPillEl) {
-  const handleAccountClick = () => {
+  // Click sul pill account: login / logout
+  homeAccountPillEl.onclick = () => {
     const uid = getCurrentUserId();
     const username = getCurrentUsername();
 
@@ -2115,14 +2161,13 @@ if (homeAccountPillEl) {
     // Se loggato → chiedi logout
     const confirmLogout = confirm("Sei già connesso come " + (username ? ("@" + username) : uid) + ". Vuoi eseguire il logout?");
     if (confirmLogout) {
-      clearCurrentUser();            // rimuove userId e username
-      alert("Logout eseguito.");     // feedback
-      showAuthOverlay();             // torna alla schermata di login
+      clearCurrentUser();
+      alert("Logout eseguito.");
+      showAuthOverlay();
     }
   };
 
-  homeAccountPillEl.onclick = handleAccountClick;
-
+  // Accessibilità tastiera: Invio/Spazio attivano il click
   homeAccountPillEl.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
@@ -2860,20 +2905,24 @@ function calculateTest() {
   if (!testRankingList) return;
 
   const battery = parseFloat(testBatteryInput.value);
-  const weight = parseFloat(testWeightInput.value);
+  const riderWeight = parseFloat(testWeightInput.value);
+  const bikeWeight = parseFloat(testBikeWeightInput.value);
   let percent = parseFloat(testPercentInput.value);
 
   if (!Number.isFinite(battery) || battery <= 0 ||
-      !Number.isFinite(weight)  || weight  <= 0 ||
+      !Number.isFinite(riderWeight)  || riderWeight  <= 0 ||
+      !Number.isFinite(bikeWeight)   || bikeWeight   <= 0 ||
       !Number.isFinite(percent)) {
-    alert("Inserisci Wh, Kg e % residua validi per il biker di test.");
+    alert("Inserisci Wh, peso biker, peso bici e % residua validi per il biker di test.");
     return;
   }
+
+  const totalWeight = riderWeight + bikeWeight;
 
   if (percent < 0) percent = 0;
   if (percent > 100) percent = 100;
 
-  const calc = computeCoyoteScore(battery, weight, percent);
+  const calc = computeCoyoteScore(battery, totalWeight, percent);
   if (!calc) {
     alert("Errore nel calcolo (dati non validi).");
     return;
@@ -2884,26 +2933,50 @@ function calculateTest() {
   const score = calc.score;
   percent = calc.percent;
 
-  const li = testRankingList.querySelector("li");
-  if (!li) return;
+  // Costruiamo la card di test come una "finta" prima posizione
+  testRankingList.innerHTML = "";
+  const li = document.createElement("li");
+  li.innerHTML = `
+    <div class="result-left">
+      <div class="result-topline">
+        <span class="position-number">1</span>
+        <span class="result-name">Biker di test</span>
+      </div>
+      <div class="battery-row">
+        <div class="battery">
+          <div class="battery-level"></div>
+          <div class="battery-percent-label"></div>
+        </div>
+        <span class="scenario-badge" id="test-scenario-display">--</span>
+      </div>
+    </div>
+    <div class="result-right">
+      <div class="right-topline">
+        <span class="medal">🏁</span>
+        <span class="result-score">--</span>
+      </div>
+    </div>
+  `;
+  testRankingList.appendChild(li);
 
   const levelElem = li.querySelector(".battery-level");
   const percentLabel = li.querySelector(".battery-percent-label");
   const scoreElem = li.querySelector(".result-score");
   const medalElem = li.querySelector(".medal");
-  
 
   if (percentLabel) percentLabel.textContent = Math.round(percent) + "%";
   if (scoreElem) scoreElem.textContent = score.toFixed(2);
   if (medalElem) medalElem.textContent = "🏁";
-  // Update external pills
+
+  // Update external pills: batteria, peso ciclista, percentuale
   const outWh = document.getElementById("pill-out-wh");
   const outKg = document.getElementById("pill-out-kg");
+const outBikeKg = document.getElementById("pill-out-bikekg");
   const outP = document.getElementById("pill-out-percent");
-  if (outWh && Number.isFinite(battery)) outWh.textContent = "Wh: " + battery.toFixed(0);
-  if (outKg && Number.isFinite(weight)) outKg.textContent = "Kg: " + weight.toFixed(1);
-  if (outP && Number.isFinite(percent)) outP.textContent = "%: " + Math.round(percent);
-
+  if (outWh && Number.isFinite(battery)) outWh.textContent = battery.toFixed(0) + " Wh";
+  if (outKg && Number.isFinite(riderWeight)) outKg.textContent = riderWeight.toFixed(1) + " kg";
+outBikeKg.textContent = bikeWeight.toFixed(1) + " kg";
+  if (outP && Number.isFinite(percent)) outP.textContent = Math.round(percent) + " %";
 
   if (levelElem) {
     levelElem.style.background = batteryColorForPercent(percent);
