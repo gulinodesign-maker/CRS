@@ -25,8 +25,85 @@
   }
 
   * { box-sizing:border-box; }
+  /* ACCESSIBILITÀ: evidenziazione focus tastiera */
+  :focus-visible {
+    outline: 2px solid var(--coyote-yellow);
+    outline-offset: 2px;
+  }
+  button:focus-visible,
+  .home-btn:focus-visible,
+  .btn:focus-visible,
+  .participant-row:focus-visible,
+  .test-tab:focus-visible {
+    outline: 2px solid var(--coyote-yellow);
+    outline-offset: 2px;
+  }
 
-  @media (prefers-reduced-motion: reduce) {
+
+  
+@media (max-width: 360px) {
+  body {
+    padding: 12px;
+  }
+  /* ANIMAZIONI LEGGERE COERENTI */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeInSoft {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .fade-in-up {
+    animation: fadeInUp 0.28s ease-out;
+  }
+
+  .fade-in-soft {
+    animation: fadeInSoft 0.22s ease-out;
+  }
+
+  .container {
+    padding: 12px;
+    border-radius: 12px;
+  }
+  .home-box {
+    margin-top: 24px;
+    padding: 20px 16px;
+    border-radius: 24px;
+  }
+  .home-btn {
+    font-size: 18px;
+    padding: 10px 14px;
+  }
+  #home-account-pill {
+    font-size: 18px;
+    padding: 6px 12px;
+  }
+  .btn {
+    font-size: 18px;
+    padding: 10px 12px;
+  }
+  #test-inputs input {
+    padding: 14px;
+    font-size: 14px;
+  }
+  #test-calc-btn,
+  #test-reset-btn {
+    padding: 18px;
+    font-size: 18px;
+  }
+  .race-pill-value {
+    font-size: 18px;
+  }
+  li {
+    font-size: 18px;
+  }
+}
+
+
+@media (prefers-reduced-motion: reduce) {
   * {
     scroll-behavior:auto !important;
     animation-duration:0.01ms !important;
@@ -101,15 +178,16 @@ body {
   }
   .auth-toggle-btn {
     flex:1;
-    padding:10px;
+    padding:12px;
     border-radius:999px;
     border:1px solid #4B5563;
     background:#111827;
     color:#E5E7EB;
-    font-size:20px;
+    font-size:18px;
     font-weight:700;
     cursor:pointer;
-    transition:background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+    transition:background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.08s ease, box-shadow 0.12s ease;
+    box-shadow:0 4px 10px rgba(0,0,0,0.35);
   }
   .auth-toggle-btn.active {
     background:var(--coyote-yellow);
@@ -137,7 +215,7 @@ body {
   .auth-button {
     width:100%;
     margin-top:14px;
-    padding:12px;
+    padding:16px;
     border-radius:999px;
     border:none;
     background:var(--coyote-red);
@@ -145,7 +223,7 @@ body {
     font-weight:700;
     font-size:20px;
     cursor:pointer;
-    transition:transform 0.08s ease;
+    transition:transform 0.08s ease, opacity 0.12s ease, box-shadow 0.12s ease;
     box-shadow:0 4px 12px rgba(204,0,0,0.45);
   }
   .auth-button:active { transform:scale(0.97); box-shadow:none; }
@@ -168,6 +246,18 @@ body {
     transition:opacity 0.25s ease;
   }
 
+  /* TRANSIZIONI TRA LE VIEW PRINCIPALI */
+  .view-section {
+    opacity:0;
+    transform:translateY(10px);
+    transition:opacity 0.22s ease-out, transform 0.22s ease-out;
+  }
+  .view-section.active-view {
+    opacity:1;
+    transform:translateY(0);
+  }
+
+
   /* CLASSIFICA – GRAFICA “RACING” */
   .ranking {
     background: radial-gradient(circle at top, #111 0, #111827 45%, #000 100%);
@@ -177,6 +267,7 @@ body {
     border:1px solid var(--coyote-yellow);
     box-shadow:0 0 10px rgba(253,224,0,0.4);
     color:#F9FAFB;
+    animation: fadeInSoft 0.28s ease-out;
   }
 
   .ranking-header { margin-bottom:8px; }
@@ -231,18 +322,42 @@ body {
 
   li {
     margin:4px 0;
-    padding:6px 8px;
-    border-radius:8px;
+    padding:8px 10px;
+    border-radius:10px;
     display:flex;
     justify-content:space-between;
     align-items:center;
     font-size:20px;
+    position:relative;
+    box-shadow:0 2px 4px rgba(0,0,0,0.25);
   }
 
   li:nth-child(1){ background:rgba(253,224,0,0.18); border:1px solid rgba(253,224,0,0.7);}
   li:nth-child(2){ background:rgba(248,113,113,0.16); border:1px solid rgba(248,113,113,0.5);}
   li:nth-child(3){ background:rgba(148,163,184,0.18); border:1px solid rgba(148,163,184,0.5);}
   li:nth-child(n+4){ background:rgba(15,23,42,0.6); border:1px solid rgba(30,64,175,0.4); }
+  li::before {
+    content:"";
+    position:absolute;
+    left:0;
+    top:4px;
+    bottom:4px;
+    width:4px;
+    border-radius:10px;
+    background:#1d4ed8;
+    opacity:0.9;
+  }
+
+  li:nth-child(1)::before {
+    background:#facc15; /* oro */
+  }
+  li:nth-child(2)::before {
+    background:#f97316; /* arancio */
+  }
+  li:nth-child(3)::before {
+    background:#9ca3af; /* argento scuro */
+  }
+
 
   .result-left {
     display:flex;
@@ -260,9 +375,10 @@ body {
   }
 
   .position-number {
-    font-size:22px;
-    font-weight:800;
+    font-size:24px;
+    font-weight:900;
     line-height:1;
+    min-width:28px;
   }
 
   .result-name {
@@ -296,13 +412,17 @@ body {
   .medal { font-size:26px; line-height:1; }
 
   .result-score {
-    font-weight:800;
-    font-size:20px;
+    font-weight:900;
+    font-size:22px;
     white-space:nowrap;
     line-height:24px;
-  
     margin-top: 3px;
-}
+    padding:4px 10px;
+    border-radius:999px;
+    background:rgba(15,23,42,0.9);
+    border:1px solid rgba(248,250,252,0.3);
+    box-shadow:0 0 6px rgba(0,0,0,0.5);
+  }
 
   /* BATTERIA */
   .battery {
@@ -353,6 +473,7 @@ body {
     border-radius:12px;
     margin-bottom:10px;
     border:1px solid #ddd;
+    animation: fadeInUp 0.22s ease-out;
   }
 
   .player-title {
@@ -416,52 +537,101 @@ body {
   }
 
 
-  /* SELEZIONE BIKERS – STILE ORIGINALE */
+  /* SELEZIONE BIKERS – STILE RACING */
   .participant-row {
     display:flex;
     align-items:center;
     justify-content:space-between;
-    padding:8px 10px;
-    border-radius:10px;
-    background:#f3f4f6;
-    margin-bottom:6px;
-    border:1px solid #d1d5db;
+    padding:10px 12px;
+    border-radius:14px;
+    background:#f9fafb;
+    margin-bottom:8px;
+    border:1px solid #e5e7eb;
     cursor:pointer;
-    transition:background 0.15s ease, transform 0.08s ease;
+    position:relative;
+    overflow:hidden;
+    transition:background 0.15s ease, transform 0.08s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   }
 
-  .participant-row:active { transform:scale(0.98); }
+  .participant-row::before {
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:4px;
+    background:var(--coyote-red);
+    opacity:0.7;
+    transition:background 0.15s ease, opacity 0.15s ease;
+  }
+
+  .participant-row:active {
+    transform:scale(0.98);
+  }
 
   .participant-row.selected {
-    background:#d1fae5;
+    background:#0f172a;
     border-color:#16a34a;
+    box-shadow:0 6px 18px rgba(0,0,0,0.3);
+    transform:translateY(-1px);
+  }
+
+  .participant-row.selected::before {
+    background:var(--coyote-yellow);
+    opacity:1;
   }
 
   .participant-main {
     display:flex;
     align-items:center;
-    gap:8px;
+    gap:10px;
   }
 
-  .participant-bullet {
-    width:18px;
-    height:18px;
-    border-radius:50%;
-    border:2px solid #9ca3af;
-    background:#fff;
+  .participant-avatar {
+    width:32px;
+    height:32px;
+    border-radius:999px;
+    background:#111827;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:800;
+    font-size:14px;
+    color:var(--coyote-yellow);
+    box-shadow:0 0 0 2px #111827, 0 0 8px rgba(0,0,0,0.4);
   }
 
-  .participant-row.selected .participant-bullet {
-    background:#22c55e;
-    border-color:#16a34a;
+  .participant-row.selected .participant-avatar {
+    background:var(--coyote-red);
+    color:#ffffff;
+    box-shadow:0 0 0 2px #7f1d1d, 0 0 10px rgba(248,113,113,0.8);
   }
 
-  .participant-name { font-weight:700; }
+  .participant-text {
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+
+  .participant-name {
+    font-weight:700;
+    font-size:14px;
+    color:#111827;
+  }
+
+  .participant-row.selected .participant-name {
+    color:#f9fafb;
+  }
 
   .participant-meta {
     font-size:11px;
     color:#6b7280;
   }
+
+  .participant-row.selected .participant-meta {
+    color:#e5e7eb;
+  }
+
 
   /* BOTTONI */
   .buttons {
@@ -473,13 +643,15 @@ body {
   .btn {
     display:block;
     width:100%;
-    padding:12px;
+    padding:16px;
     border-radius:999px;
     border:none;
     font-weight:700;
     font-size:20px;
     cursor:pointer;
-    transition:transform 0.08s ease, opacity 0.12s ease;
+    transition:transform 0.08s ease, opacity 0.12s ease, box-shadow 0.12s ease;
+    box-shadow:0 4px 12px rgba(0,0,0,0.25);
+    animation: fadeInUp 0.25s ease-out;
   }
   .btn:active { transform:scale(0.97); box-shadow:none; }
 
@@ -497,13 +669,16 @@ body {
   }
   .btn-small {
     flex:1;
-    padding:16px;
+    padding:14px;
     border-radius:999px;
     border:none;
-    font-size:20px;
+    font-size:18px;
     font-weight:700;
     cursor:pointer;
+    transition:transform 0.08s ease, opacity 0.12s ease, box-shadow 0.12s ease;
+    box-shadow:0 3px 10px rgba(0,0,0,0.25);
   }
+  .btn-small:active { transform:scale(0.97); box-shadow:none; }
   .btn-db-add   { background:#e5e7eb; color:#111; }
   .btn-db-save  { background:var(--coyote-yellow); color:#111; }
 
@@ -592,21 +767,25 @@ body {
     display:flex;
     flex-direction:column;
     gap:16px;
+    animation: fadeInUp 0.3s ease-out;
   }
 
   .home-btn {
+    display:block;
+    width:100%;
     background:var(--coyote-red);
     color:#ffffff;
-    padding:14px 18px;
+    padding:16px;
     font-size:20px;
     text-align:center;
-    border-radius:22px;
-    border:2px solid var(--coyote-red);
+    border-radius:999px;
+    border:none;
     font-weight:700;
     cursor:pointer;
-    transition:transform 0.08s ease, opacity 0.12s ease;
+    transition:transform 0.08s ease, opacity 0.12s ease, box-shadow 0.12s ease;
+    box-shadow:0 4px 12px rgba(0,0,0,0.25);
   }
-  .home-btn:active { transform:scale(0.97); }
+  .home-btn:active { transform:scale(0.97); box-shadow:none; }
 
   /* COLORI SPECIFICI BOTTONI HOME */
   #home-btn-race {
@@ -651,6 +830,7 @@ body {
     border-radius:12px;
     padding:10px;
     border:1px solid #e5e7eb;
+    animation: fadeInUp 0.25s ease-out;
   }
   .test-tabs {
     display:flex;
@@ -695,13 +875,14 @@ body {
   #test-calc-btn, #test-reset-btn {
     margin-top:10px;
     width:100%;
-    padding:24px;
+    padding:20px;
     border-radius:999px;
     border:none;
     font-weight:700;
     font-size:20px;
     cursor:pointer;
-    transition:transform 0.08s ease;
+    transition:transform 0.08s ease, opacity 0.12s ease, box-shadow 0.12s ease;
+    box-shadow:0 4px 12px rgba(0,0,0,0.25);
   }
   #test-calc-btn { background:#16a34a; color:#fff; }
   #test-reset-btn { background:#dc2626; color:#fff; }
@@ -809,6 +990,7 @@ body {
     font-size: 11px;
     color: var(--coyote-red);
     text-align: center;
+    letter-spacing: 0.04em;
   }
 
 
@@ -843,7 +1025,7 @@ body {
     </div>
 
     <button id="auth-submit" class="auth-button" type="button">Entra</button>
-    <div id="auth-error" class="auth-error"></div>
+    <div id="auth-error" class="auth-error" aria-live="polite"></div>
   </div>
 </div>
 
@@ -853,7 +1035,7 @@ body {
 </div>
 
 <div id="menu-wrap" style="width:100%; display:flex; justify-content:center; margin-bottom:16px;">
-  <div id="menu-icon">
+  <div id="menu-icon" role="button" aria-label="Torna alla home" tabindex="0">
     <div class="menu-line"></div>
     <div class="menu-line"></div>
     <div class="menu-line"></div>
@@ -873,7 +1055,7 @@ body {
 
   <div style="height:60px;"></div>
 
-  <div id="home-account-pill"></div>
+  <div id="home-account-pill" role="button" aria-label="Gestisci account" tabindex="0"></div>
 
   <div id="home-footer">
     <div id="version-label"></div>
@@ -941,7 +1123,7 @@ body {
       </div>
     </div>
 
-    <div id="performance-chart" style="background:#f3f4f6; border-radius:12px; padding:10px; border:1px solid #d1d5db; margin-top:8px;">
+    <div id="performance-chart" style="background:#f3f4f6; border-radius:12px; padding:10px; border:1px solid #d1d5db; margin-top:8px; animation: fadeInUp 0.3s ease-out;">
       <div id="performance-bars" style="display:flex; align-items:flex-end; gap:8px; height:220px; padding:8px 4px 0;"></div>
       <div id="performance-empty" style="font-size:12px; color:#6b7280; text-align:center; margin-top:8px;">
         Nessuna gara registrata.
@@ -1037,7 +1219,8 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "2.46";
+const APP_VERSION = "2.55";
+const BUILD_DATE = "2025-12-09";
 const API_URL = "https://script.google.com/macros/s/AKfycbypSAJ04y8QGmNy4Yj-OnZytC9j_rFw7aBfh6hJ7iuxy_LJVAvok_dKPxy44ZWpCNq0/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
@@ -1145,6 +1328,16 @@ const testResetBtn = document.getElementById("test-reset-btn");
 const testTabs = document.querySelectorAll(".test-tab");
 const testTabContents = document.querySelectorAll(".test-tab-content");
 
+testTabs.forEach((tab) => {
+  tab.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      tab.click();
+    }
+  });
+});
+
+
 /* AUTH & ACCOUNT */
 const authOverlay = document.getElementById("auth-overlay");
 const authToggleLogin = document.getElementById("auth-toggle-login");
@@ -1155,6 +1348,20 @@ const authSubmitButton = document.getElementById("auth-submit");
 const authErrorLabel = document.getElementById("auth-error");
 const accountBadge = document.getElementById("account-badge");
 const versionLabel = document.getElementById("version-label");
+
+const viewSections = [
+  dbContainer,
+  selectContainer,
+  playersContainer,
+  raceInfoContainer,
+  performanceContainer,
+  testView,
+  rankingBox
+];
+viewSections.forEach((v) => {
+  if (v) v.classList.add("view-section");
+});
+
 
 let authMode = "login";
 let selectedIndices = {};
@@ -1205,7 +1412,7 @@ function updateHomeAccountPill() {
 }
 
 if (versionLabel) {
-  versionLabel.textContent = "Versione " + APP_VERSION;
+  versionLabel.textContent = "Versione " + APP_VERSION + " – build " + BUILD_DATE;
 }
 
 updateAccountBadge();
@@ -1436,6 +1643,21 @@ function updateButtonsForView(mode) {
   }
 }
 
+function setActiveSection(elem, shouldShow, useFlex = false) {
+  if (!elem) return;
+  elem.classList.add("view-section");
+  if (shouldShow) {
+    elem.style.display = useFlex ? "flex" : "block";
+    elem.classList.remove("active-view");
+    // forza reflow per permettere la transizione
+    void elem.offsetWidth;
+    elem.classList.add("active-view");
+  } else {
+    elem.classList.remove("active-view");
+    elem.style.display = "none";
+  }
+}
+
 function showView(mode) {
   currentView = mode;
 
@@ -1444,13 +1666,13 @@ function showView(mode) {
 
   if (homeView) homeView.style.display = (mode === "home") ? "flex" : "none";
 
-  dbContainer.style.display       = (mode === "db")      ? "block" : "none";
-  selectContainer.style.display   = (mode === "select")  ? "block" : "none";
-  playersContainer.style.display  = (mode === "percent") ? "block" : "none";
-  raceInfoContainer.style.display = (mode === "raceinfo")? "flex"  : "none";
-  performanceContainer.style.display = (mode === "performance") ? "block" : "none";
-  if (testView) testView.style.display = (mode === "test") ? "block" : "none";
-  rankingBox.style.display        = (mode === "results") ? "block" : "none";
+  setActiveSection(dbContainer,        mode === "db");
+  setActiveSection(selectContainer,    mode === "select");
+  setActiveSection(playersContainer,   mode === "percent");
+  setActiveSection(raceInfoContainer,  mode === "raceinfo", true);
+  setActiveSection(performanceContainer, mode === "performance");
+  setActiveSection(testView,           mode === "test");
+  setActiveSection(rankingBox,         mode === "results");
 
   updateButtonsForView(mode);
 }
@@ -1558,19 +1780,34 @@ function createParticipantRow(b, i) {
   const row = document.createElement("div");
   row.className = "participant-row";
   row.dataset.index = i;
+  row.tabIndex = 0;
+
+  const initial = (b.name && b.name.trim().charAt(0))
+    ? b.name.trim().charAt(0).toUpperCase()
+    : "?";
 
   row.innerHTML = `
     <div class="participant-main">
-      <div class="participant-bullet"></div>
-      <span class="participant-name">${b.name}</span>
+      <div class="participant-avatar">${initial}</div>
+      <div class="participant-text">
+        <span class="participant-name">${b.name}</span>
+        <span class="participant-meta">${b.battery} Wh · ${b.weight} kg</span>
+      </div>
     </div>
-    <div class="participant-meta">${b.battery} Wh · ${b.weight} kg</div>
   `;
 
-  row.onclick = () => {
+  const toggleSelected = () => {
     selectedIndices[i] = !selectedIndices[i];
     row.classList.toggle("selected");
   };
+
+  row.onclick = toggleSelected;
+  row.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleSelected();
+    }
+  });
 
   selectContainer.appendChild(row);
 }
@@ -1758,7 +1995,15 @@ function calculate() {
 
 /* MENU ICON */
 const menuIcon = document.getElementById("menu-icon");
-if (menuIcon) menuIcon.onclick = () => showView("home");
+if (menuIcon) {
+  menuIcon.onclick = () => showView("home");
+  menuIcon.onkeydown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      showView("home");
+    }
+  };
+}
 
 /* HOME BUTTONS */
 if (homeBtnRace) {
@@ -1841,6 +2086,17 @@ if (document.getElementById("home-account-pill")) {
       showAuthOverlay();             // torna alla schermata di login
     }
   };
+
+const homeAccountPillEl = document.getElementById("home-account-pill");
+if (homeAccountPillEl) {
+  homeAccountPillEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      homeAccountPillEl.click();
+    }
+  });
+}
+
 }
 
 if (homeBtnBikers) {
