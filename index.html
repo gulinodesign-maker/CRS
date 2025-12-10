@@ -97,6 +97,8 @@
   .race-pill-value {
     font-size: 18px;
   }
+  #test-scenario-display { color: var(--coyote-red); }
+
   li {
     font-size: 18px;
   }
@@ -1238,6 +1240,42 @@ body {
     text-shadow: 0 0 4px rgba(0,0,0,0.7) !important;
   }
 
+
+  /* POPUP LOADING PERFORMANCE */
+  #loading-popup-overlay {
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.65);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:10002;
+  }
+  .loading-popup {
+    background:#111827;
+    color:#f9fafb;
+    padding:18px 24px;
+    border-radius:18px;
+    box-shadow:0 15px 40px rgba(0,0,0,0.4);
+    font-size:18px;
+    font-weight:700;
+    text-align:center;
+  }
+  .loading-popup-dots span {
+    display:inline-block;
+    animation:loadingDots 1s infinite;
+  }
+  .loading-popup-dots span:nth-child(2) {
+    animation-delay:0.2s;
+  }
+  .loading-popup-dots span:nth-child(3) {
+    animation-delay:0.4s;
+  }
+  @keyframes loadingDots {
+    0%, 20% { opacity:0; }
+    50%     { opacity:1; }
+    100%    { opacity:0; }
+  }
 </style>
 </head>
 
@@ -1334,6 +1372,15 @@ body {
   </div>
 
   <div id="db-container"></div>
+
+  <!-- Popup loading performance -->
+  <div id="loading-popup-overlay" aria-hidden="true">
+    <div class="loading-popup" role="status" aria-live="polite">
+      Loading<span class="loading-popup-dots">
+        <span>.</span><span>.</span><span>.</span>
+      </span>
+    </div>
+  </div>
 
   <!-- Modale gestione singolo biker -->
   <div id="biker-modal-overlay">
@@ -1446,7 +1493,7 @@ body {
       <div class="ranking-header">
         <div class="race-pills-row">
           <div class="race-pill">
-            <div class="race-pill-value" id="test-scenario-display"><span style="color:red;">Wh/kg</span></div>
+            <div class="race-pill-value" id="test-scenario-display">Wh/kg</div>
           </div>
         </div>
       </div>
@@ -1512,8 +1559,8 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "3.22";
-const BUILD_DATE = "2025-12-10-3.22";
+const APP_VERSION = "3.26";
+const BUILD_DATE = "2025-12-10-3.26";
 const API_URL = "https://script.google.com/macros/s/AKfycbyIJtsBxN25dbU20AicBxfGa7sdAizTJn3f1tFSSsiA9c1M1Ce1q5kUcXSmAQfd0UR3/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
@@ -1603,6 +1650,7 @@ function hideBikersLoading() {
 
 /* REFERENCES */
 const dbContainer = document.getElementById("db-container");
+const loadingPopupOverlay = document.getElementById("loading-popup-overlay");
 
 const bikerModalOverlay = document.getElementById("biker-modal-overlay");
 const bikerModalTitle   = document.getElementById("biker-modal-title");
@@ -2445,8 +2493,11 @@ function calculate() {
     const li = document.createElement("li");
     li.innerHTML = `
       <div class="result-left">
-        <div class="result-topline"></div>
-      <div class="battery-row">
+        <div class="result-topline">
+          <span class="position-number">${i + 1}</span>
+          <span class="result-name">${r.name || "Biker"}</span>
+        </div>
+        <div class="battery-row">
           <div class="battery">
             <div class="battery-level" style="background:${batteryColorForPercent(r.percent)}"></div>
             <span class="battery-percent-label">${r.percent}%</span>
@@ -3167,6 +3218,19 @@ function renderPerformanceGraph(races) {
 }
 
 /* LOAD PERFORMANCE */
+
+/* POPUP LOADING PERFORMANCE */
+function showLoadingPopup() {
+  if (loadingPopupOverlay) {
+    loadingPopupOverlay.style.display = "flex";
+  }
+}
+function hideLoadingPopup() {
+  if (loadingPopupOverlay) {
+    loadingPopupOverlay.style.display = "none";
+  }
+}
+
 async function loadPerformanceView() {
   const userId = getCurrentUserId();
   if (!userId) {
@@ -3177,10 +3241,13 @@ async function loadPerformanceView() {
   showView("performance");
   if (!performanceBars) return;
 
+  // Mostra popup di loading
+  showLoadingPopup();
+
   performanceBars.innerHTML = "";
   if (performanceEmpty) {
-    performanceEmpty.textContent = "Carico performance...";
-    performanceEmpty.style.display = "block";
+    performanceEmpty.textContent = "";
+    performanceEmpty.style.display = "none";
   }
 
   try {
@@ -3215,6 +3282,7 @@ async function loadPerformanceView() {
     renderPerformanceGraph(racesFlat);
 
     if (!racesFlat.length) {
+      hideLoadingPopup();
       if (performanceEmpty) {
         performanceEmpty.textContent = "Nessuna gara registrata.";
         performanceEmpty.style.display = "block";
@@ -3224,8 +3292,10 @@ async function loadPerformanceView() {
     }
 
     renderPerformanceOverall();
+    hideLoadingPopup();
   } catch (e) {
     console.error(e);
+    hideLoadingPopup();
     if (performanceEmpty) {
       performanceEmpty.textContent = "Errore nel caricamento delle performance.";
       performanceEmpty.style.display = "block";
@@ -3375,7 +3445,13 @@ if (testCalcBtn) testCalcBtn.onclick = calculateTest;
 if (testResetBtn) testResetBtn.onclick = () => initTestView();
 
 /* PERFORMANCE BUTTONS */
-if (performanceOverallBtn) performanceOverallBtn.onclick = () => renderPerformanceOverall();
+if (performanceOverallBtn) performanceOverallBtn.onclick = () => {
+  showLoadingPopup();
+  setTimeout(() => {
+    renderPerformanceOverall();
+    hideLoadingPopup();
+  }, 50);
+};
 if (performanceRaceBtn) performanceRaceBtn.onclick = () => openRaceCalendar();
 
 /* SERVICE WORKER */
@@ -3474,3 +3550,4 @@ init();
 
 </body>
 </html>
+  
