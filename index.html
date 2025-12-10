@@ -849,7 +849,7 @@ body {
     box-shadow:0 3px 10px rgba(0,0,0,0.25);
   }
   .btn-small:active { transform:scale(0.97); box-shadow:none; }
-  .btn-db-add   { background:#e5e7eb; color:#111; }
+  .btn-db-add   { background:var(--coyote-red); color:#ffffff; }
   .btn-db-save  { background:var(--coyote-yellow); color:#111; }
 
   /* BANNER IN ALTO */
@@ -1446,7 +1446,7 @@ body {
       <div class="ranking-header">
         <div class="race-pills-row">
           <div class="race-pill">
-            <div class="race-pill-value" id="test-scenario-display">Wh/kg</div>
+            <div class="race-pill-value" id="test-scenario-display"><span style="color:red;">Wh/kg</span></div>
           </div>
         </div>
       </div>
@@ -1512,8 +1512,8 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "3.20";
-const BUILD_DATE = "2025-12-10-3.20";
+const APP_VERSION = "3.22";
+const BUILD_DATE = "2025-12-10-3.22";
 const API_URL = "https://script.google.com/macros/s/AKfycbyIJtsBxN25dbU20AicBxfGa7sdAizTJn3f1tFSSsiA9c1M1Ce1q5kUcXSmAQfd0UR3/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
