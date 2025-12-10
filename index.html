@@ -1164,6 +1164,80 @@ body {
   }
 
 
+
+  /* TEST ALGORITMO – pillole dati, header e card risultato in grigio chiaro */
+  #test-view .test-data-pill {
+    background: #e5e7eb;
+    color: var(--coyote-red);
+    border: 1px solid #d1d5db;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
+  }
+
+  #test-view .ranking {
+    background: #e5e7eb;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.20);
+    color: #111827;
+  }
+
+  #test-view .ranking-header .race-pill {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.12);
+    color: #111827;
+  }
+
+  #test-view .race-pill-value {
+    color: #111827;
+  }
+
+  #test-ranking-box ol {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  #test-ranking-box li {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
+  }
+
+  #test-ranking-box li::before {
+    background: transparent;
+  }
+
+  #test-ranking-box li:nth-child(1),
+  #test-ranking-box li:nth-child(2),
+  #test-ranking-box li:nth-child(3),
+  #test-ranking-box li:nth-child(n+4) {
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+  }
+
+  #test-view .position-number,
+  #test-view .result-name,
+  #test-view .battery-percent-label,
+  #test-view .scenario-badge,
+  #test-view .medal {
+    color: #111827;
+    text-shadow: none;
+  }
+
+  #test-view .result-score {
+    background: #e5e7eb;
+    color: #111827;
+    border: 1px solid #d1d5db;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
+  }
+
+
+  /* TEST ALGORITMO – percentuale batteria in bianco */
+  #test-view .battery-percent-label {
+    color: #ffffff !important;
+    text-shadow: 0 0 4px rgba(0,0,0,0.7) !important;
+  }
+
 </style>
 </head>
 
@@ -1438,8 +1512,8 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "3.14";
-const BUILD_DATE = "2025-12-09-3.14";
+const APP_VERSION = "3.20";
+const BUILD_DATE = "2025-12-10-3.20";
 const API_URL = "https://script.google.com/macros/s/AKfycbyIJtsBxN25dbU20AicBxfGa7sdAizTJn3f1tFSSsiA9c1M1Ce1q5kUcXSmAQfd0UR3/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
@@ -1681,7 +1755,7 @@ function updateHomeAccountPill() {
 }
 
 if (versionLabel) {
-  versionLabel.textContent = "Versione " + APP_VERSION + " · Build " + BUILD_DATE;
+  versionLabel.textContent = "Versione " + APP_VERSION;
 }
 
 updateAccountBadge();
@@ -2371,11 +2445,8 @@ function calculate() {
     const li = document.createElement("li");
     li.innerHTML = `
       <div class="result-left">
-        <div class="result-topline">
-          <span class="position-number">${i + 1}</span>
-          <span class="result-name">${r.name}</span>
-        </div>
-        <div class="battery-row">
+        <div class="result-topline"></div>
+      <div class="battery-row">
           <div class="battery">
             <div class="battery-level" style="background:${batteryColorForPercent(r.percent)}"></div>
             <span class="battery-percent-label">${r.percent}%</span>
@@ -3249,16 +3320,13 @@ function calculateTest() {
   const li = document.createElement("li");
   li.innerHTML = `
     <div class="result-left">
-      <div class="result-topline">
-        <span class="position-number">1</span>
-        <span class="result-name">Biker di test</span>
-      </div>
+      <div class="result-topline"></div>
       <div class="battery-row">
         <div class="battery">
           <div class="battery-level"></div>
           <div class="battery-percent-label"></div>
         </div>
-        <span class="scenario-badge" id="test-scenario-display">--</span>
+        <span class="scenario-badge" id="test-scenario-display"></span>
       </div>
     </div>
     <div class="result-right">
