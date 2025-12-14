@@ -1280,6 +1280,155 @@ body {
   #main-buttons { margin-top:100px; }
   #home-account-pill { margin-top:100px; }
   #app-version { margin-top:100px; }
+
+  /* BIKERS PERFORMANCE VIEW */
+  #bikers-performance-view {
+    display:none;
+    margin-top:16px;
+  }
+  .bp-header {
+    text-align:center;
+    font-weight:900;
+    color:var(--coyote-red);
+    margin:8px 0 10px;
+    font-size:16px;
+  }
+  .bp-subtitle {
+    text-align:center;
+    font-size:12px;
+    color:#374151;
+    margin:0 0 10px;
+  }
+  .bp-list {
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:10px;
+  }
+  .bp-item {
+    width:100%;
+    text-align:left;
+    padding:12px 14px;
+    border-radius:14px;
+    border:1px solid #e5e7eb;
+    background:#f9fafb;
+    cursor:pointer;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
+    transition:transform 0.06s ease, box-shadow 0.12s ease, background 0.12s ease;
+  }
+  .bp-item:active { transform:scale(0.99); box-shadow:none; }
+  .bp-name {
+    font-weight:800;
+    color:#111827;
+    font-size:16px;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+  }
+  .bp-score {
+    font-weight:900;
+    color:#111827;
+    font-size:16px;
+    background:#e5e7eb;
+    border:1px solid #d1d5db;
+    padding:6px 10px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .bp-back-row {
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin-top:12px;
+  }
+  .bp-back-btn {
+    width:100%;
+    max-width:320px;
+    padding:16px;
+    border-radius:999px;
+    border:none;
+    font-weight:800;
+    font-size:20px;
+    cursor:pointer;
+    background:#CC0000;
+    color:#fff;
+    box-shadow:0 4px 12px rgba(0,0,0,0.25);
+  }
+  .bp-back-btn:active { transform:scale(0.97); box-shadow:none; }
+
+  .bp-history {
+    margin-top:14px;
+    background:#f3f4f6;
+    border-radius:12px;
+    padding:10px;
+    border:1px solid #d1d5db;
+  }
+  .bp-history-title {
+    font-weight:900;
+    color:#111827;
+    text-align:center;
+    margin:4px 0 10px;
+  }
+  .bp-history-list {
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .bp-race-card {
+    background:#ffffff;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    padding:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+  }
+  .bp-race-left {
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    min-width:0;
+  }
+  .bp-race-date {
+    font-weight:900;
+    color:var(--coyote-red);
+    font-size:12px;
+  }
+  .bp-race-circuit {
+    font-weight:800;
+    color:#111827;
+    font-size:14px;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+    max-width:220px;
+  }
+  .bp-race-meta {
+    font-size:11px;
+    color:#6b7280;
+  }
+  .bp-race-score {
+    font-weight:900;
+    font-size:16px;
+    white-space:nowrap;
+    padding:6px 10px;
+    border-radius:999px;
+    background:#e5e7eb;
+    border:1px solid #d1d5db;
+    color:#111827;
+  }
+  .bp-empty {
+    text-align:center;
+    color:#6b7280;
+    font-size:12px;
+    margin-top:10px;
+  }
+
 </style>
 </head>
 
@@ -1482,6 +1631,14 @@ body {
         </button>
       </div>
 
+      <div style="margin-top:10px; display:flex; justify-content:center;">
+        <button id="performance-bikers-btn"
+          style="background:#111827; color:#fff; padding:16px 28px; border:none; border-radius:999px;
+                 font-weight:800; cursor:pointer; font-size:20px; width:100%;">
+          Bikers performance
+        </button>
+      </div>
+
       <!-- POPUP CALENDARIO GARE -->
       <div id="race-calendar"
            style="display:none; margin:10px auto 0; padding:10px;
@@ -1492,7 +1649,25 @@ body {
     </div>
   </div>
 
-  <div id="test-view" style="display:none; margin-top:16px;">
+  
+  <div id="bikers-performance-view">
+    <div class="bp-header">Bikers performance</div>
+    <div class="bp-subtitle">Classifica per prestazione media (pesata sui km).</div>
+
+    <div id="bp-list" class="bp-list"></div>
+
+    <div id="bp-history" class="bp-history" style="display:none;">
+      <div class="bp-history-title" id="bp-history-title">Storico</div>
+      <div id="bp-history-list" class="bp-history-list"></div>
+      <div id="bp-history-empty" class="bp-empty" style="display:none;">Nessuna gara trovata per questo biker.</div>
+    </div>
+
+    <div class="bp-back-row">
+      <button id="bp-back-btn" class="bp-back-btn" type="button">Indietro</button>
+    </div>
+  </div>
+
+<div id="test-view" style="display:none; margin-top:16px;">
     <div class="ranking" id="test-ranking-box">
       <div class="ranking-header">
         <div class="race-pills-row">
@@ -1563,8 +1738,8 @@ body {
 <script>
 "use strict";
 
-const APP_VERSION = "3.27";
-const BUILD_DATE = "2025-12-10-3.27";
+const APP_VERSION = "3.28";
+const BUILD_DATE = "2025-12-14-3.28";
 const API_URL = "https://script.google.com/macros/s/AKfycbyIJtsBxN25dbU20AicBxfGa7sdAizTJn3f1tFSSsiA9c1M1Ce1q5kUcXSmAQfd0UR3/exec";
 
 const USER_ID_STORAGE_KEY = "crs_userId_v2";
@@ -1707,6 +1882,15 @@ const performanceRaceBtn = document.getElementById("performance-race-btn");
 const raceCalendar = document.getElementById("race-calendar");
 
 const performanceRaceHeader = document.getElementById("performance-race-header");
+const performanceBikersBtn = document.getElementById("performance-bikers-btn");
+const bikersPerformanceView = document.getElementById("bikers-performance-view");
+const bpList = document.getElementById("bp-list");
+const bpHistoryWrap = document.getElementById("bp-history");
+const bpHistoryTitle = document.getElementById("bp-history-title");
+const bpHistoryList = document.getElementById("bp-history-list");
+const bpHistoryEmpty = document.getElementById("bp-history-empty");
+const bpBackBtn = document.getElementById("bp-back-btn");
+
 const perfRaceDateDisplay = document.getElementById("perf-race-date-display");
 const perfRaceDistanceDisplay = document.getElementById("perf-race-distance-display");
 const perfRaceElevationDisplay = document.getElementById("perf-race-elevation-display");
@@ -1750,6 +1934,7 @@ const viewSections = [
   playersContainer,
   raceInfoContainer,
   performanceContainer,
+  bikersPerformanceView,
   testView,
   rankingBox
 ];
@@ -1807,7 +1992,7 @@ function updateHomeAccountPill() {
 }
 
 if (versionLabel) {
-  versionLabel.textContent = "Versione " + APP_VERSION;
+  versionLabel.textContent = "Versione " + APP_VERSION + " • Build " + BUILD_DATE;
 }
 
 updateAccountBadge();
@@ -2066,6 +2251,7 @@ function showView(mode) {
   setActiveSection(playersContainer,   mode === "percent");
   setActiveSection(raceInfoContainer,  mode === "raceinfo", true);
   setActiveSection(performanceContainer, mode === "performance");
+  setActiveSection(bikersPerformanceView, mode === "bikersPerformance");
   setActiveSection(testView,           mode === "test");
   setActiveSection(rankingBox,         mode === "results");
 
@@ -3308,6 +3494,135 @@ async function loadPerformanceView() {
   }
 }
 
+
+/* BIKERS PERFORMANCE VIEW */
+function computeWeightedPerformanceByKm(racesFlat) {
+  const map = new Map();
+  (racesFlat || []).forEach(r => {
+    const name = (r && r.name) ? String(r.name) : "";
+    if (!name) return;
+    const km = Number(r.km);
+    const w = (Number.isFinite(km) && km > 0) ? km : 1;
+    const score = Number(r.score);
+    if (!Number.isFinite(score)) return;
+
+    const prev = map.get(name) || { wSum: 0, sSum: 0 };
+    prev.wSum += w;
+    prev.sSum += score * w;
+    map.set(name, prev);
+  });
+
+  const out = [];
+  map.forEach((v, name) => {
+    const avg = v.wSum > 0 ? (v.sSum / v.wSum) : 0;
+    out.push({ name, avgScore: avg, totalWeight: v.wSum });
+  });
+
+  out.sort((a, b) => b.avgScore - a.avgScore);
+  return out;
+}
+
+function safeFormatDate(d) {
+  if (!d) return "";
+  const s = String(d);
+  // accetta YYYY-MM-DD e simili
+  return s;
+}
+
+function renderBikerHistory(name) {
+  if (!bpHistoryWrap || !bpHistoryList || !bpHistoryTitle || !bpHistoryEmpty) return;
+
+  const bikerName = String(name || "");
+  bpHistoryTitle.textContent = "Storico • " + bikerName;
+
+  const races = (allRaces || []).filter(r => String(r.name || "") === bikerName);
+  races.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+
+  bpHistoryList.innerHTML = "";
+  bpHistoryEmpty.style.display = "none";
+
+  if (!races.length) {
+    bpHistoryWrap.style.display = "block";
+    bpHistoryEmpty.style.display = "block";
+    return;
+  }
+
+  races.forEach(r => {
+    const card = document.createElement("div");
+    card.className = "bp-race-card";
+
+    const date = safeFormatDate(r.date);
+    const circuit = (r.circuit || "—");
+    const km = Number(r.km);
+    const elev = Number(r.elevation);
+    const score = Number(r.score);
+
+    const kmTxt = Number.isFinite(km) ? (km.toFixed(1).replace(".0","") + " km") : "";
+    const elTxt = Number.isFinite(elev) ? (elev.toFixed(0) + " m") : "";
+
+    card.innerHTML = `
+      <div class="bp-race-left">
+        <div class="bp-race-date">${date}</div>
+        <div class="bp-race-circuit">${circuit}</div>
+        <div class="bp-race-meta">${kmTxt}${(kmTxt && elTxt) ? " • " : ""}${elTxt}</div>
+      </div>
+      <div class="bp-race-score">${Number.isFinite(score) ? score.toFixed(2) : "--"}</div>
+    `;
+    bpHistoryList.appendChild(card);
+  });
+
+  bpHistoryWrap.style.display = "block";
+}
+
+function renderBikersPerformanceView() {
+  if (!bpList) return;
+
+  // Reset history panel
+  if (bpHistoryWrap) {
+    bpHistoryWrap.style.display = "none";
+    if (bpHistoryList) bpHistoryList.innerHTML = "";
+    if (bpHistoryEmpty) bpHistoryEmpty.style.display = "none";
+  }
+
+  bpList.innerHTML = "";
+
+  const ranking = computeWeightedPerformanceByKm(allRaces);
+
+  if (!ranking.length) {
+    const empty = document.createElement("div");
+    empty.className = "bp-empty";
+    empty.textContent = "Nessuna gara registrata.";
+    bpList.appendChild(empty);
+    return;
+  }
+
+  ranking.forEach((r, idx) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "bp-item";
+    btn.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1;">
+        <div class="bp-name">${idx + 1}. ${r.name}</div>
+        <div style="font-size:11px;color:#6b7280;">Media pesata</div>
+      </div>
+      <div class="bp-score">${Number.isFinite(r.avgScore) ? r.avgScore.toFixed(2) : "--"}</div>
+    `;
+    btn.onclick = () => renderBikerHistory(r.name);
+    bpList.appendChild(btn);
+  });
+}
+
+async function openBikersPerformanceFromPerformance() {
+  // Se non ho ancora dati gara, provo a caricare
+  if (!allRaces || allRaces.length === 0) {
+    await loadPerformanceView(); // carica allRaces e torna su performance
+  }
+  renderBikersPerformanceView();
+  showView("bikersPerformance");
+}
+
+/* END BIKERS PERFORMANCE VIEW */
+
 /* TEST VIEW */
 function initTestView() {
   if (!testRankingList) return;
@@ -3457,6 +3772,10 @@ if (performanceOverallBtn) performanceOverallBtn.onclick = () => {
   }, 50);
 };
 if (performanceRaceBtn) performanceRaceBtn.onclick = () => openRaceCalendar();
+if (performanceBikersBtn) performanceBikersBtn.onclick = () => openBikersPerformanceFromPerformance();
+if (bpBackBtn) bpBackBtn.onclick = () => showView("performance");
+
+
 
 /* SERVICE WORKER */
 if ("serviceWorker" in navigator) {
